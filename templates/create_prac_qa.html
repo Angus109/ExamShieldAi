@@ -1,0 +1,281 @@
+{% extends 'professor_dashboard.html' %}
+{% block body %}
+{% from "includes/_formhelpers.html" import render_field %}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header Section -->
+            <div class="form-header text-center mb-4">
+                <div class="form-icon practical">
+                    <i class="fas fa-code"></i>
+                </div>
+                <h2 class="form-title">Create Practical Exam</h2>
+                <p class="form-subtitle">Set up coding challenges and programming assessments</p>
+            </div>
+
+            <!-- Main Form Card -->
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-4 p-lg-5">
+                    <form method="POST" action="" class="exam-form">
+                        {{ form.csrf_token }}
+                        
+                        <!-- Basic Information Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-info-circle me-2"></i>Basic Information
+                            </h4>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Subject</label>
+                                    {{render_field(form.subject, class="form-control form-control-lg", placeholder="e.g., Data Structures")}}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Topic</label>
+                                    {{render_field(form.topic, class="form-control form-control-lg", placeholder="e.g., Binary Trees")}}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Problem Statement Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-tasks me-2"></i>Problem Statement
+                            </h4>
+                            <div class="problem-container">
+                                <div class="mb-3">
+                                    <label class="form-label">Question/Problem Description</label>
+                                    {{render_field(form.questionprac, class="form-control form-control-lg", rows="8", placeholder="Describe the programming problem, input/output format, constraints, and examples...")}}
+                                    <small class="form-text text-muted">
+                                        Include problem description, input/output format, constraints, and sample test cases
+                                    </small>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Total Marks</label>
+                                        {{render_field(form.marksprac, class="form-control form-control-lg", placeholder="e.g., 100")}}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Programming Language/Compiler</label>
+                                        {{render_field(form.compiler, class="form-control form-control-lg")}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Schedule Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-calendar-alt me-2"></i>Exam Schedule
+                            </h4>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Start Date</label>
+                                    {{render_field(form.start_date, class="form-control form-control-lg")}}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Start Time</label>
+                                    {{render_field(form.start_time, class="form-control form-control-lg")}}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">End Date</label>
+                                    {{render_field(form.end_date, class="form-control form-control-lg")}}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">End Time</label>
+                                    {{render_field(form.end_time, class="form-control form-control-lg")}}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security & Settings Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-cogs me-2"></i>Exam Settings
+                            </h4>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Exam Password</label>
+                                    {{render_field(form.password, class="form-control form-control-lg", placeholder="Enter secure password")}}
+                                    <small class="form-text text-muted">Students will need this password to access the exam</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Duration (minutes)</label>
+                                    {{render_field(form.duration, class="form-control form-control-lg", placeholder="e.g., 180")}}
+                                    <small class="form-text text-muted">Recommended: 2-4 hours for practical exams</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Practical Exam Features -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-laptop-code me-2"></i>Practical Exam Features
+                            </h4>
+                            <div class="features-grid">
+                                <div class="feature-item">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-terminal"></i>
+                                    </div>
+                                    <h6>Code Editor</h6>
+                                    <p class="text-muted">Built-in IDE with syntax highlighting</p>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-play-circle"></i>
+                                    </div>
+                                    <h6>Code Execution</h6>
+                                    <p class="text-muted">Real-time code compilation and testing</p>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <h6>Auto Evaluation</h6>
+                                    <p class="text-muted">Automated testing with test cases</p>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-save"></i>
+                                    </div>
+                                    <h6>Auto Save</h6>
+                                    <p class="text-muted">Automatic code saving every 30 seconds</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Proctoring Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-eye me-2"></i>Proctoring Settings
+                            </h4>
+                            <div class="proctoring-options practical">
+                                {{render_field(form.proctor_type, class="form-control form-control-lg")}}
+                                <small class="form-text text-muted">
+                                    Enhanced proctoring recommended for practical exams to prevent code sharing
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Submit Section -->
+                        <div class="form-actions text-center">
+                            <button type="submit" class="btn btn-warning btn-lg px-5">
+                                <i class="fas fa-plus-circle me-2"></i>Create Practical Exam
+                            </button>
+                            <a href="/professor_index" class="btn btn-outline-secondary btn-lg px-5 ms-3">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Practical Exam Specific Styles */
+.form-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+}
+
+.problem-container {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 15px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.problem-container:hover {
+    border-color: #ffc107;
+    background: rgba(255, 193, 7, 0.05);
+}
+
+.problem-container textarea {
+    min-height: 150px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.feature-item {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 15px;
+    border: 2px solid #f1f3f4;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+    border-color: #ffc107;
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.15);
+}
+
+.feature-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #ffc107, #ff8f00);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+    font-size: 1.25rem;
+}
+
+.feature-item h6 {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.proctoring-options.practical {
+    border-color: #ffc107;
+    background: rgba(255, 193, 7, 0.05);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #ffc107, #ff8f00);
+    border: none;
+    color: white;
+}
+
+.btn-warning:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.4);
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .feature-item {
+        padding: 1rem;
+    }
+    
+    .problem-container {
+        padding: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

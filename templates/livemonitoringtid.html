@@ -1,0 +1,244 @@
+{% extends 'professor_dashboard.html' %}
+{% block body %}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-4 p-lg-5">
+                    {% if(cresults is not none and cresults) %}
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <div class="page-icon live-monitoring">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <h3 class="page-title">VIEW LIVE OF STUDENTS</h3>
+                        <p class="page-subtitle">Monitor students in real-time during active examinations</p>
+                    </div>
+
+                    <!-- Form Section -->
+                    <div class="form-container">
+                        <form action="/live_monitoring" method="POST" class="monitoring-form">
+                            <div class="form-group mb-4">
+                                <label class="form-label" for="livebox">Choose Exam ID:</label>
+                                <div class="select-wrapper">
+                                    <select class="form-select form-select-lg" id="livebox" name="choosetid" required>
+                                        <option value="" disabled selected>Select an active exam</option>
+                                        {% for test in cresults %}
+                                        <option value="{{test}}">Exam ID: {{test}}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="select-icon">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary btn-lg px-5">
+                                    <i class="fas fa-eye me-2"></i>VIEW LIVE MONITORING OF EXAM
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Live Status Indicator -->
+                    <div class="live-status mt-4">
+                        <div class="status-indicator">
+                            <div class="live-dot"></div>
+                            <span>{{cresults|length}} Active Exam(s)</span>
+                        </div>
+                    </div>
+
+                    {% else %}
+                    <!-- No Active Exams -->
+                    <div class="text-center">
+                        <div class="page-icon no-data">
+                            <i class="fas fa-video-slash"></i>
+                        </div>
+                        <h3 class="page-title">No Records Found!</h3>
+                        <div class="info-text">
+                            <p>Or</p>
+                            <p><strong>Note:</strong> Only Live Exam ID's are shown between duration of the Exam.</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Live Monitoring Styles */
+.page-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+    font-size: 2rem;
+}
+
+.page-icon.live-monitoring {
+    background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.page-icon.no-data {
+    background: linear-gradient(135deg, #6c757d, #495057);
+}
+
+.page-title {
+    color: #2c3e50;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+    color: #6c757d;
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+
+.card {
+    border-radius: 20px;
+}
+
+.form-container {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 15px;
+    border: 1px solid #e9ecef;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+.select-wrapper {
+    position: relative;
+}
+
+.form-select {
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    padding: 1rem 3rem 1rem 1rem;
+    background: white;
+    transition: all 0.3s ease;
+    appearance: none;
+}
+
+.form-select:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.select-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    pointer-events: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+}
+
+.live-status {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(40, 167, 69, 0.1);
+    border-radius: 10px;
+    border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: #28a745;
+}
+
+.live-dot {
+    width: 12px;
+    height: 12px;
+    background: #28a745;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+    }
+}
+
+.info-text {
+    color: #6c757d;
+    margin-top: 1rem;
+}
+
+.info-text p {
+    margin-bottom: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 2rem 1rem;
+    }
+    
+    .form-container {
+        padding: 1.5rem;
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 2rem;
+        font-size: 1rem;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .btn-lg {
+        width: 100%;
+        padding: 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .page-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

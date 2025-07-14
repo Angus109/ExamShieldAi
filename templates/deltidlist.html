@@ -1,0 +1,251 @@
+{% extends 'professor_dashboard.html' %}
+{% block body %}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-4 p-lg-5">
+                    {% if(cresults is not none and cresults) %}
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <div class="page-icon delete-questions">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                        <h3 class="page-title">DELETE QUESTIONS</h3>
+                        <p class="page-subtitle">Remove questions from existing examinations</p>
+                    </div>
+
+                    <!-- Warning Notice -->
+                    <div class="warning-notice mb-4">
+                        <div class="warning-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="warning-text">
+                            <strong>Warning:</strong> This action cannot be undone. Please proceed with caution.
+                        </div>
+                    </div>
+
+                    <!-- Form Section -->
+                    <div class="form-container">
+                        <form action="deldispques" method="POST" class="delete-form">
+                            <div class="form-group mb-4">
+                                <label class="form-label" for="examSelect">Choose Exam ID:</label>
+                                <div class="select-wrapper">
+                                    <select class="form-select form-select-lg" id="examSelect" name="choosetid" required>
+                                        <option value="" disabled selected>Select exam to delete questions</option>
+                                        {% for test in cresults %}
+                                        <option value="{{test}}">Exam ID: {{test}}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="select-icon">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-danger btn-lg px-5">
+                                    <i class="fas fa-eye me-2"></i>VIEW QUESTIONS
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    {% else %}
+                    <!-- No Records -->
+                    <div class="text-center">
+                        <lottie-player 
+                            src="https://assets7.lottiefiles.com/datafiles/vhvOcuUkH41HdrL/data.json"
+                            background="transparent"
+                            speed="1"
+                            style="width: 300px; height: 300px;"
+                            loop
+                            autoplay>
+                        </lottie-player>
+                        <h3 class="page-title">No Records Found!</h3>
+                        <div class="info-notice">
+                            <div class="notice-icon">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div class="notice-text">
+                                <p><strong>Note:</strong> At the time of Exam or After Exam you are not allowed to update & delete the questions & answers</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Delete Questions Styles */
+.page-icon.delete-questions {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+}
+
+.page-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+    font-size: 2rem;
+}
+
+.page-title {
+    color: #2c3e50;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+    color: #6c757d;
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+
+.card {
+    border-radius: 20px;
+}
+
+.warning-notice {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: 10px;
+    gap: 1rem;
+}
+
+.warning-icon {
+    color: #dc3545;
+    font-size: 1.25rem;
+}
+
+.warning-text {
+    color: #721c24;
+    font-size: 0.9rem;
+}
+
+.form-container {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 15px;
+    border: 1px solid #e9ecef;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+.select-wrapper {
+    position: relative;
+}
+
+.form-select {
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    padding: 1rem 3rem 1rem 1rem;
+    background: white;
+    transition: all 0.3s ease;
+    appearance: none;
+}
+
+.form-select:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.select-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    pointer-events: none;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    border: none;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+}
+
+.info-notice {
+    display: flex;
+    align-items: flex-start;
+    padding: 1.5rem;
+    background: rgba(23, 162, 184, 0.1);
+    border: 1px solid rgba(23, 162, 184, 0.3);
+    border-radius: 10px;
+    margin-top: 2rem;
+    gap: 1rem;
+}
+
+.notice-icon {
+    color: #17a2b8;
+    font-size: 1.25rem;
+    margin-top: 0.25rem;
+}
+
+.notice-text {
+    color: #0c5460;
+}
+
+.notice-text p {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 2rem 1rem;
+    }
+    
+    .form-container {
+        padding: 1.5rem;
+    }
+    
+    .btn-lg {
+        width: 100%;
+        padding: 1rem;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .warning-notice,
+    .info-notice {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .page-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

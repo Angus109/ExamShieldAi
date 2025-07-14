@@ -1,0 +1,206 @@
+{% extends 'professor_dashboard.html' %}
+{% block body %}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-4 p-lg-5">
+                    {% if cresults is not none %}
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <div class="page-icon student-logs">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <h3 class="page-title">VIEW STUDENT LOGS</h3>
+                        <p class="page-subtitle">Review detailed activity logs and monitoring data</p>
+                    </div>
+
+                    <!-- Animation -->
+                    <div class="lottie-wrapper text-center mb-4">
+                        <lottie-player 
+                            src="https://assets3.lottiefiles.com/packages/lf20_45rapv.json"
+                            background="transparent"
+                            speed="1"
+                            style="width: 250px; height: 250px;"
+                            loop
+                            autoplay>
+                        </lottie-player>
+                    </div>
+
+                    <!-- Form Section -->
+                    <div class="form-container">
+                        <form action="displaystudentsdetails" method="POST" class="logs-form">
+                            <div class="form-group mb-4">
+                                <label class="form-label" for="livebox">Choose Exam ID:</label>
+                                <div class="select-wrapper">
+                                    <select class="form-select form-select-lg" id="livebox" name="choosetid" required>
+                                        <option value="" disabled selected>Select exam to view logs</option>
+                                        {% for test in cresults %}
+                                        <option value="{{test['test_id']}}">Exam ID: {{test['test_id']}}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="select-icon">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary btn-lg px-5">
+                                    <i class="fas fa-search me-2"></i>VIEW STUDENT LOGS
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    {% else %}
+                    <!-- No Records -->
+                    <div class="text-center">
+                        <lottie-player 
+                            src="https://assets7.lottiefiles.com/datafiles/vhvOcuUkH41HdrL/data.json"
+                            background="transparent"
+                            speed="1"
+                            style="width: 300px; height: 300px;"
+                            loop
+                            autoplay>
+                        </lottie-player>
+                        <h3 class="page-title">No Records Found!</h3>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Student Logs Styles */
+.page-icon.student-logs {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+}
+
+/* Center Lottie Animation */
+.lottie-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.page-icon.student-logs {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+    font-size: 2rem;
+}
+
+.page-title {
+    color: #2c3e50;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+    color: #6c757d;
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+
+.card {
+    border-radius: 20px;
+}
+
+.form-container {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 15px;
+    border: 1px solid #e9ecef;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+.select-wrapper {
+    position: relative;
+}
+
+.form-select {
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    padding: 1rem 3rem 1rem 1rem;
+    background: white;
+    transition: all 0.3s ease;
+    appearance: none;
+}
+
+.form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.select-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    pointer-events: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border: none;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 2rem 1rem;
+    }
+    
+    .form-container {
+        padding: 1.5rem;
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 2rem;
+        font-size: 1rem;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .btn-lg {
+        width: 100%;
+        padding: 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .page-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

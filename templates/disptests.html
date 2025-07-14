@@ -1,0 +1,243 @@
+{% extends 'professor_dashboard.html' %}
+{% block body %}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            {% if tests is not none and tests %}
+            <!-- Header -->
+            <div class="page-header text-center mb-4">
+                <h3 class="page-title">EXAM HISTORY</h3>
+            </div>
+
+            <!-- Animation Centered -->
+            <div class="lottie-wrapper mb-4">
+                <lottie-player 
+                    src="https://assets1.lottiefiles.com/packages/lf20_ljr4k6s1.json"
+                    background="transparent"
+                    speed="1"
+                    style="width: 300px; height: 180px;"
+                    loop
+                    autoplay>
+                </lottie-player>
+            </div>
+
+            <!-- Enhanced Table Card with Padding -->
+            <div class="card border-0 shadow-lg form-wrapper">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table id="example" class="table table-hover mb-0">
+                            <thead class="table-header">
+                                <tr>
+                                    <th class="border-0">Test ID</th>
+                                    <th class="border-0">Password</th>
+                                    <th class="border-0">Subject</th>
+                                    <th class="border-0">Topic</th>
+                                    <th class="border-0 text-center">Share</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for test in tests %}
+                                <tr class="table-row">
+                                    <td class="test-id-cell">{{test['test_id']}}</td>
+                                    <td class="password-cell">{{test['password']}}</td>
+                                    <td class="subject-cell">{{test['subject']}}</td>
+                                    <td class="topic-cell">{{test['topic']}}</td>
+                                    <td class="text-center">
+                                        <a class="btn btn-primary btn-share" href="/{{session.email}}/{{test['test_id']}}/share_details">
+                                            <i class="fas fa-share-alt me-1"></i>Share
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {% else %}
+            <!-- No Records Found -->
+            <div class="card border-0 shadow-lg">
+                <div class="card-body text-center p-5">
+                    <div class="empty-state">
+                        <lottie-player 
+                            src="https://assets7.lottiefiles.com/datafiles/vhvOcuUkH41HdrL/data.json"
+                            background="transparent"
+                            speed="1"
+                            style="width: 300px; height: 300px;"
+                            loop
+                            autoplay>
+                        </lottie-player>
+                        <h3 class="empty-title">No Records Found!</h3>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+/* Center Lottie Animation */
+.lottie-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Padding around the form/card */
+.form-wrapper {
+    padding: 2rem;
+}
+
+/* Enhanced Display Tests Styles */
+.page-title {
+    color: #2c3e50;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.table-header {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+}
+
+.table-header th {
+    font-weight: 600;
+    color: #2c3e50;
+    padding: 1.25rem 1rem;
+    border: none;
+    font-size: 0.95rem;
+}
+
+.table-row {
+    transition: all 0.3s ease;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.table-row:hover {
+    background-color: rgba(102, 126, 234, 0.05);
+    transform: translateX(5px);
+}
+
+.table-row td {
+    padding: 1rem;
+    vertical-align: middle;
+    border: none;
+}
+
+.test-id-cell {
+    font-weight: 600;
+    color: #2c3e50;
+    font-family: 'Monaco', 'Menlo', monospace;
+}
+
+.password-cell {
+    font-family: 'Monaco', 'Menlo', monospace;
+    background: #f8f9fa;
+    border-radius: 5px;
+    padding: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.subject-cell {
+    font-weight: 600;
+    color: #495057;
+}
+
+.topic-cell {
+    color: #6c757d;
+}
+
+.btn-share {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 20px;
+    padding: 0.5rem 1.25rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.btn-share:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.empty-state {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.empty-title {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .table-header th,
+    .table-row td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .btn-share {
+        padding: 0.375rem 1rem;
+        font-size: 0.8rem;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .table-responsive {
+        font-size: 0.8rem;
+    }
+    
+    .table-header th,
+    .table-row td {
+        padding: 0.5rem 0.25rem;
+    }
+    
+    .btn-share {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.75rem;
+    }
+    
+    .btn-share .me-1 {
+        display: none;
+    }
+}
+</style>
+
+<script>
+$(document).ready(function() {
+    $('#example').DataTable({
+        dom: 'Bfrtip',
+        buttons: [
+            'copy', 'csv', 'excel', 'pdf', 'print'
+        ],
+        responsive: true,
+        pageLength: 10,
+        language: {
+            search: "Search exams:",
+            lengthMenu: "Show _MENU_ exams",
+            info: "Showing _START_ to _END_ of _TOTAL_ exams"
+        }
+    });
+});
+</script>
+
+{% endblock %}

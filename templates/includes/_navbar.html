@@ -1,0 +1,724 @@
+<script src="{{ url_for('static', filename='volt/vendor/sweetalert2/dist/sweetalert2.all.min.js') }}"></script>
+<script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+
+<style>
+/* Enhanced Navigation Styles */
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    --secondary-gradient: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    --accent-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --shadow-enhanced: 0 20px 40px rgba(0, 0, 0, 0.1);
+    --shadow-glow: 0 0 30px rgba(102, 126, 234, 0.3);
+    --shadow-soft: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* Enhanced Animations */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(102, 126, 234, 0.6);
+    }
+}
+
+/* Enhanced Header */
+.header-global {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.95);
+    border-bottom: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-soft);
+    animation: fadeInDown 1s ease-out;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.header-global::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.05), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.header-global:hover::before {
+    opacity: 1;
+}
+
+/* Enhanced Navbar */
+.navbar {
+    padding: 1rem 0;
+    background: transparent !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.navbar.scrolled {
+    padding: 0.5rem 0;
+    backdrop-filter: blur(25px);
+    background: rgba(255, 255, 255, 0.98) !important;
+    box-shadow: var(--shadow-enhanced);
+}
+
+/* Enhanced Brand */
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: #2c3e50;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.navbar-brand::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.navbar-brand:hover::before {
+    left: 100%;
+}
+
+.navbar-brand:hover {
+    color: #667eea;
+    transform: scale(1.05);
+    text-decoration: none;
+}
+
+.navbar-brand lottie-player {
+    margin-right: 0.5rem;
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+.navbar-brand:hover lottie-player {
+    transform: scale(1.1) rotate(5deg);
+    filter: drop-shadow(0 6px 12px rgba(102, 126, 234, 0.3));
+}
+
+/* Enhanced Toggle Button */
+.navbar-toggler {
+    border: none;
+    padding: 0.5rem;
+    border-radius: 12px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.navbar-toggler::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--primary-gradient);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.navbar-toggler:hover::before {
+    opacity: 0.1;
+}
+
+.navbar-toggler:hover {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-glow);
+}
+
+.navbar-toggler:focus {
+    box-shadow: none;
+}
+
+.navbar-toggler-icon {
+    position: relative;
+    z-index: 2;
+}
+
+.navbar-toggler i {
+    transition: all 0.3s ease;
+}
+
+.navbar-toggler:hover i {
+    color: #667eea !important;
+    transform: rotate(90deg);
+}
+
+/* Enhanced Navigation Items */
+.navbar-nav {
+    align-items: center;
+}
+
+.nav-item {
+    margin: 0 0.25rem;
+    animation: slideInRight 0.8s ease-out;
+}
+
+.nav-item:nth-child(1) { animation-delay: 0.1s; }
+.nav-item:nth-child(2) { animation-delay: 0.2s; }
+.nav-item:nth-child(3) { animation-delay: 0.3s; }
+.nav-item:nth-child(4) { animation-delay: 0.4s; }
+.nav-item:nth-child(5) { animation-delay: 0.5s; }
+
+.nav-link {
+    color: #2c3e50 !important;
+    font-weight: 600;
+    padding: 0.75rem 1.25rem !important;
+    border-radius: 25px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    background: transparent;
+    border: 1px solid transparent;
+}
+
+.nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: var(--primary-gradient);
+    transition: left 0.5s;
+    z-index: -1;
+}
+
+.nav-link:hover::before {
+    left: 0;
+}
+
+.nav-link:hover {
+    color: white !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-soft);
+    border-color: var(--glass-border);
+}
+
+.nav-link.active,
+.nav-link:focus {
+    background: var(--primary-gradient);
+    color: white !important;
+    box-shadow: var(--shadow-glow);
+}
+
+.nav-link i,
+.nav-link span {
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover i {
+    transform: scale(1.2);
+}
+
+.nav-link span {
+    margin-left: 0.5rem;
+}
+
+/* Special Logout Button */
+.nav-link[onclick] {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    color: white !important;
+    border: none;
+}
+
+.nav-link[onclick]::before {
+    background: linear-gradient(135deg, #ee5a24, #ff6b6b);
+}
+
+.nav-link[onclick]:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 10px 25px rgba(238, 90, 36, 0.4);
+}
+
+/* Enhanced Mobile Menu */
+.navbar-collapse {
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(20px);
+    border-radius: 15px;
+    margin-top: 1rem;
+    padding: 1rem;
+    box-shadow: var(--shadow-enhanced);
+    border: 1px solid var(--glass-border);
+}
+
+@media (max-width: 991.98px) {
+    .navbar-nav {
+        padding: 1rem 0;
+    }
+    
+    .nav-item {
+        margin: 0.25rem 0;
+        width: 100%;
+    }
+    
+    .nav-link {
+        justify-content: flex-start;
+        width: 100%;
+        margin: 0.25rem 0;
+    }
+}
+
+/* Enhanced Container */
+.container {
+    position: relative;
+    z-index: 2;
+}
+
+/* FIXED: Remove body padding that was causing white space */
+body {
+    margin: 0;
+    padding: 0;
+    /* Removed: padding-top: 100px; */
+    transition: all 0.3s ease;
+}
+
+/* Add margin to main content instead of body padding */
+.main-content {
+    margin-top: 80px; /* Adjust this value based on your navbar height */
+}
+
+/* Enhanced SweetAlert Styling */
+.swal2-popup {
+    backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    box-shadow: var(--shadow-enhanced);
+}
+
+.swal2-title {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.swal2-confirm {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24) !important;
+    border: none !important;
+    border-radius: 25px !important;
+    padding: 0.75rem 2rem !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+}
+
+.swal2-confirm:hover {
+    transform: translateY(-2px) scale(1.05) !important;
+    box-shadow: 0 10px 25px rgba(238, 90, 36, 0.4) !important;
+}
+
+.swal2-cancel {
+    background: var(--dark-gradient) !important;
+    border: none !important;
+    border-radius: 25px !important;
+    padding: 0.75rem 2rem !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+}
+
+.swal2-cancel:hover {
+    transform: translateY(-2px) scale(1.05) !important;
+    box-shadow: var(--shadow-soft) !important;
+}
+
+/* Scroll Effects */
+.navbar-scrolled {
+    animation: glow 2s ease-in-out infinite;
+}
+
+/* Loading Animation */
+.nav-loading {
+    position: relative;
+}
+
+.nav-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+}
+
+/* Enhanced Icons */
+.nav-link i {
+    font-size: 1rem;
+    margin-right: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover i {
+    animation: pulse 1s ease-in-out infinite;
+}
+
+/* Responsive Enhancements */
+@media (max-width: 768px) {
+    .main-content {
+        margin-top: 70px;
+    }
+    
+    .navbar {
+        padding: 0.75rem 0;
+    }
+    
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+    
+    .navbar-brand lottie-player {
+        width: 50px !important;
+        height: 35px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        margin-top: 60px;
+    }
+    
+    .navbar {
+        padding: 0.5rem 0;
+    }
+    
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+    
+    .nav-link {
+        padding: 0.5rem 1rem !important;
+        font-size: 0.9rem;
+    }
+}
+
+/* Performance Optimizations */
+.navbar,
+.nav-link,
+.navbar-brand,
+.navbar-toggler {
+    will-change: transform;
+}
+
+/* Custom Scrollbar for Mobile Menu */
+.navbar-collapse::-webkit-scrollbar {
+    width: 4px;
+}
+
+.navbar-collapse::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-collapse::-webkit-scrollbar-thumb {
+    background: var(--primary-gradient);
+    border-radius: 2px;
+}
+</style>
+
+<header class="header-global">
+   <nav id="navbar-main" class="navbar navbar-main navbar-expand-lg navbar-theme-primary fixed-top">
+        <div class="container">
+           <a class="navbar-brand" href="/">
+               <lottie-player 
+                    src="https://assets1.lottiefiles.com/packages/lf20_wEt2nn.json" 
+                    background="transparent" 
+                    speed="1" 
+                    style="width: 70px; height: 50px;" 
+                    loop 
+                    autoplay>
+               </lottie-player>
+               <span>ExamShield.ai</span>
+           </a>
+           
+           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+               <span class="navbar-toggler-icon">
+                   <i class="fas fa-bars" style="color:#1c2540; font-size:28px;"></i>
+               </span>
+           </button>
+           
+           <div class="collapse navbar-collapse" id="navbarSupportedContent">
+               <ul class="nav navbar-nav ml-auto">
+                   {% if session.logged_in %}
+                       {% if session.user_role == "student" %}
+                           <li class="nav-item">
+                               <a class="nav-link" id="active1" href="/student_index">
+                                   <i class="fas fa-columns"></i>
+                                   <span>Dashboard</span>
+                               </a>
+                           </li>
+                           <li class="nav-item">
+                               <a class="nav-link" id="active2" href="/changepassword_student">
+                                   <i class="fas fa-key"></i>
+                                   <span>Change Password</span>
+                               </a>
+                           </li>
+                       {% endif %}
+                       
+                       {% if session.user_role == "teacher" %}
+                           <li class="nav-item">
+                               <a class="nav-link" id="active1" href="/professor_index">
+                                   <i class="fas fa-columns"></i>
+                                   <span>Dashboard</span>
+                               </a>
+                           </li>
+                           <li class="nav-item">
+                               <a class="nav-link" id="active2" href="/changepassword_professor">
+                                   <i class="fas fa-key"></i>
+                                   <span>Change Password</span>
+                               </a>
+                           </li>
+                       {% endif %}
+                       
+                       <li class="nav-item">
+                           <a class="nav-link" id="active3" href="/contact">
+                               <i class="fas fa-phone-alt"></i>
+                               <span>Contact Us</span>
+                           </a>
+                       </li>
+                       
+                       <li class="nav-item">
+                           <a class="nav-link" id="active4" href="/faq">
+                               <i class="fas fa-question"></i>
+                               <span>FAQ</span>
+                           </a>
+                       </li>
+                       
+                       <li class="nav-item">
+                           <a class="nav-link" href="#" onclick="return funLogout()">
+                               <i class="fas fa-sign-out-alt"></i>
+                               <span>Logout</span>
+                           </a>
+                       </li>
+                   {% else %}
+                       <li class="nav-item">
+                           <a class="nav-link" id="active6" href="/login">
+                               <i class="fas fa-sign-in-alt"></i>
+                               <span>Login</span>
+                           </a>
+                       </li>
+                       
+                       <li class="nav-item">
+                           <a class="nav-link" id="active5" href="/register">
+                               <i class="fas fa-user-plus"></i>
+                               <span>Register</span>
+                           </a>
+                       </li>
+                       
+                       <li class="nav-item">
+                           <a class="nav-link" id="active8" href="/contact">
+                               <i class="fas fa-phone-alt"></i>
+                               <span>Contact Us</span>
+                           </a>
+                       </li>
+                       
+                       <li class="nav-item">
+                           <a class="nav-link" id="active7" href="/faq">
+                               <i class="fas fa-question"></i>
+                               <span>FAQ</span>
+                           </a>
+                       </li>
+                   {% endif %}
+               </ul>
+           </div>
+       </div>
+   </nav>
+</header>
+
+<script>
+// Enhanced scroll effects
+window.addEventListener('scroll', function() {
+    const navbar = document.getElementById('navbar-main');
+    const scrolled = window.pageYOffset;
+    
+    if (scrolled > 50) {
+        navbar.classList.add('scrolled', 'navbar-scrolled');
+    } else {
+        navbar.classList.remove('scrolled', 'navbar-scrolled');
+    }
+});
+
+// Enhanced navigation interactions
+document.addEventListener('DOMContentLoaded', function() {
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    navLinks.forEach(link => {
+        link.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        
+        link.addEventListener('mouseleave', function() {
+            if (!this.classList.contains('active')) {
+                this.style.transform = 'translateY(0)';
+            }
+        });
+    });
+    
+    // Add active class to current page
+    const currentPath = window.location.pathname;
+    navLinks.forEach(link => {
+        if (link.getAttribute('href') === currentPath) {
+            link.classList.add('active');
+        }
+    });
+});
+
+// Enhanced logout function with modern styling
+function funLogout() {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "Do you really want to logout?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Logout me!',
+        cancelButtonText: 'No, Cancel',
+        confirmButtonColor: '#ee5a24',
+        cancelButtonColor: '#2c3e50',
+        reverseButtons: true,
+        backdrop: 'rgba(0,0,0,0.4)',
+        customClass: {
+            popup: 'swal-enhanced',
+            title: 'swal-title-enhanced',
+            confirmButton: 'swal-confirm-enhanced',
+            cancelButton: 'swal-cancel-enhanced'
+        },
+        showClass: {
+            popup: 'animate__animated animate__fadeInDown'
+        },
+        hideClass: {
+            popup: 'animate__animated animate__fadeOutUp'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Add loading state
+            const logoutBtn = document.querySelector('[onclick="return funLogout()"]');
+            logoutBtn.classList.add('nav-loading');
+            logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Logging out...</span>';
+            
+            $.ajax({
+                type: "POST",
+                url: "/logout",
+                success: function(response) {
+                    if (response == "success") {
+                        console.log(response);
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'You have been successfully signed out from the system.',
+                            icon: 'success',
+                            confirmButtonColor: '#38ef7d',
+                            customClass: {
+                                popup: 'swal-enhanced'
+                            }
+                        }).then(() => {
+                            window.location.href = "/";
+                        });
+                    }
+                },
+                error: function() {
+                    logoutBtn.classList.remove('nav-loading');
+                    logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i><span>Logout</span>';
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Something went wrong. Please try again.',
+                        icon: 'error',
+                        confirmButtonColor: '#ff6b6b'
+                    });
+                }
+            });
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            Swal.fire({
+                title: 'Cancelled',
+                text: 'Logout cancelled.',
+                icon: 'info',
+                confirmButtonColor: '#667eea',
+                customClass: {
+                    popup: 'swal-enhanced'
+                }
+            });
+        }
+    });
+    
+    return false;
+}
+
+// Mobile menu enhancements
+document.addEventListener('DOMContentLoaded', function() {
+    const navbarToggler = document.querySelector('.navbar-toggler');
+    const navbarCollapse = document.querySelector('.navbar-collapse');
+    
+    navbarToggler.addEventListener('click', function() {
+        setTimeout(() => {
+            if (navbarCollapse.classList.contains('show')) {
+                navbarCollapse.style.animation = 'fadeInDown 0.3s ease-out';
+            }
+        }, 10);
+    });
+});
+</script>

@@ -1,0 +1,324 @@
+{% extends 'professor_dashboard.html' %}
+{% block body %}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-4 p-lg-5">
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <div class="page-icon payment">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <h3 class="page-title">Upgrade Your Plan</h3>
+                        <p class="page-subtitle">Get more exam credits and premium features</p>
+                    </div>
+
+                    <!-- Stripe Logo -->
+                    <div class="text-center mb-4">
+                        <img src="static/stripe_payments.png" alt="Stripe Payments" class="stripe-logo">
+                    </div>
+
+                    <!-- Current Credits -->
+                    <div class="credits-display mb-4">
+                        <div class="credits-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="credits-info">
+                            <h5>Current Exam Credits</h5>
+                            <span class="credits-count">{{callresults['examcredits']}}</span>
+                        </div>
+                    </div>
+
+                    <!-- Pricing Card -->
+                    <div class="pricing-card">
+                        <div class="pricing-header">
+                            <div class="price-display">
+                                <span class="currency">₹</span>
+                                <span class="amount">499</span>
+                            </div>
+                            <div class="price-subtitle">10 exams</div>
+                        </div>
+
+                        <div class="features-list">
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Exam Analytics</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Monitor Students</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Unlimited Student Capacity</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>24 × 7 Community Support</span>
+                            </div>
+                        </div>
+
+                        <button type="button" id="checkout-button" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-lock me-2"></i>Pay Now Securely
+                        </button>
+                    </div>
+
+                    <!-- Security Notice -->
+                    <div class="security-notice mt-4">
+                        <div class="security-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="security-text">
+                            <small>Secured by Stripe. Your payment information is encrypted and secure.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=fetch"></script>
+<script src="https://js.stripe.com/v3/"></script>
+<script type="text/javascript">
+var stripe = Stripe("pk_test_51PJb7KRrL4cP0OLZBVlUx9zKgPhQMqeYnKe3pj5fD7GzioakodqZA4rgYTyTbc5fmHTm7kmCDPZUxgXcIYU4B4As00TkKpfwjy");
+var checkoutButton = document.getElementById("checkout-button");
+
+checkoutButton.addEventListener("click", function () {
+    // Add loading state
+    checkoutButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+    checkoutButton.disabled = true;
+    
+    fetch("/create-checkout-session", {
+        method: "POST",
+    })
+    .then(function (response) {
+        return response.json();
+    })
+    .then(function (session) {
+        return stripe.redirectToCheckout({ sessionId: session.id });
+    })
+    .then(function (result) {
+        if (result.error) {
+            alert(result.error.message);
+            // Reset button
+            checkoutButton.innerHTML = '<i class="fas fa-lock me-2"></i>Pay Now Securely';
+            checkoutButton.disabled = false;
+        }
+    })
+    .catch(function (error) {
+        console.error("Error:", error);
+        // Reset button
+        checkoutButton.innerHTML = '<i class="fas fa-lock me-2"></i>Pay Now Securely';
+        checkoutButton.disabled = false;
+    });
+});
+</script>
+
+<style>
+/* Payment Styles */
+.page-icon.payment {
+    background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.page-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+    font-size: 2rem;
+}
+
+.page-title {
+    color: #2c3e50;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+    color: #6c757d;
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+
+.card {
+    border-radius: 20px;
+}
+
+.stripe-logo {
+    max-width: 200px;
+    width: 100%;
+    height: auto;
+}
+
+.credits-display {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 15px;
+    color: white;
+    gap: 1rem;
+}
+
+.credits-icon {
+    font-size: 2rem;
+    opacity: 0.9;
+}
+
+.credits-info h5 {
+    margin: 0;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.credits-count {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.pricing-card {
+    background: #f8f9fa;
+    border-radius: 15px;
+    padding: 2rem;
+    border: 1px solid #e9ecef;
+}
+
+.pricing-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.price-display {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+}
+
+.currency {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #28a745;
+    margin-top: 0.5rem;
+}
+
+.amount {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.price-subtitle {
+    color: #28a745;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.features-list {
+    margin-bottom: 2rem;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0;
+    gap: 1rem;
+}
+
+.feature-item i {
+    color: #28a745;
+    font-size: 1.1rem;
+}
+
+.feature-item span {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    padding: 1rem;
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+}
+
+.btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.security-notice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: rgba(40, 167, 69, 0.1);
+    border-radius: 10px;
+    border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.security-icon {
+    color: #28a745;
+}
+
+.security-text {
+    color: #155724;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 2rem 1rem;
+    }
+    
+    .pricing-card {
+        padding: 1.5rem;
+    }
+    
+    .credits-display {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .amount {
+        font-size: 2.5rem;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .page-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    .stripe-logo {
+        max-width: 150px;
+    }
+    
+    .security-notice {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,653 @@
+{% extends 'layout.html' %}
+{% block body %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Identity Verification - EaxmShield.ai</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --success-gradient: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+            animation: backgroundShift 20s ease-in-out infinite;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(5deg); }
+        }
+
+        /* Main Container */
+        .verification-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 0;
+        }
+
+        .verification-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 700px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .verification-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent-gradient);
+        }
+
+        .verification-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .verification-subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            text-align: center;
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        /* Camera Frame */
+        .camera-frame {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto 2rem;
+            border-radius: 20px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.3);
+            border: 3px solid transparent;
+            background-clip: padding-box;
+        }
+
+        .camera-frame::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: var(--accent-gradient);
+            border-radius: 20px;
+            z-index: -1;
+            animation: borderGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes borderGlow {
+            0% { opacity: 0.5; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.02); }
+        }
+
+        .camera-frame::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        #video {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 17px;
+            background: #000;
+        }
+
+        /* Face Position Guide */
+        .face-guide {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 250px;
+            border: 2px dashed rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: pulseGuide 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseGuide {
+            0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+        }
+
+        .face-guide::before {
+            content: 'Verify your identity';
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        /* Camera Status */
+        .camera-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.8rem;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.active {
+            background: #4ade80;
+        }
+
+        .status-indicator.inactive {
+            background: #ef4444;
+        }
+
+        .status-indicator.loading {
+            background: #fbbf24;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-text {
+            color: white;
+            font-weight: 500;
+        }
+
+        /* Control Buttons */
+        .camera-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .btn-camera {
+            background: var(--secondary-gradient);
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-camera:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            color: white;
+        }
+
+        .btn-camera:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-submit {
+            background: var(--success-gradient);
+            border: none;
+            padding: 1rem 3rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            color: white;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-top: 1rem;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            color: white;
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Image Preview */
+        .image-preview {
+            margin-top: 2rem;
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: none;
+        }
+
+        .image-preview.show {
+            display: block;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .preview-title {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .preview-image {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .preview-image:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Hidden Elements */
+        #canvas {
+            display: none;
+        }
+
+        /* Back to Login Link */
+        .back-link {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .back-link a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .back-link a:hover {
+            color: #4facfe;
+            text-decoration: underline;
+        }
+
+        /* Loading Animation */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .verification-card {
+                margin: 1rem;
+                padding: 2rem;
+            }
+            
+            .verification-title {
+                font-size: 2rem;
+            }
+            
+            .camera-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn-camera {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg"></div>
+
+    <div class="verification-container">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="verification-card">
+                        <h1 class="verification-title">
+                            <i class="fas fa-shield-alt me-3"></i>Login Verification
+                        </h1>
+                        <p class="verification-subtitle">
+                            Please verify your identity by capturing a photo. This will be compared with your registered image 
+                            to ensure secure access to your account.
+                        </p>
+                        
+                        <form action="/identityVerify" method="POST">
+                            <!-- Camera Status -->
+                            <div class="camera-status">
+                                <div class="status-indicator loading" id="statusIndicator"></div>
+                                <span class="status-text" id="statusText">
+                                    <span class="loading-spinner"></span> Initializing camera...
+                                </span>
+                            </div>
+                            
+                            <!-- Camera Frame -->
+                            <div class="camera-frame">
+                                <video id="video" autoplay muted playsinline></video>
+                                <div class="face-guide" id="faceGuide"></div>
+                            </div>
+                            
+                            <!-- Camera Controls -->
+                            <div class="camera-controls">
+                                <button type="button" class="btn-camera" id="capturePhoto" disabled>
+                                    <i class="fas fa-camera me-2"></i>Capture Photo
+                                </button>
+                                <button type="button" class="btn-camera" id="retakePhoto" style="display: none;">
+                                    <i class="fas fa-redo me-2"></i>Retake Photo
+                                </button>
+                            </div>
+                            
+                            <!-- Image Preview -->
+                            <div class="image-preview" id="imagePreview">
+                                <div class="preview-title">
+                                    <i class="fas fa-check-circle" style="color: #4ade80;"></i>
+                                    Identity Photo Captured
+                                </div>
+                                <img id="previewImage" class="preview-image" alt="Captured identity photo preview">
+                            </div>
+                            
+                            <!-- Hidden Canvas and Input -->
+                            <canvas id="canvas" width="640" height="480"></canvas>
+                            <input type="hidden" name="image_hidden" id="imageData">
+                            
+                            <!-- Submit Button -->
+                            <button type="submit" class="btn-submit" id="submitBtn" disabled>
+                                <i class="fas fa-sign-in-alt me-2"></i>Verify & Login
+                            </button>
+                        </form>
+                        
+                        <div class="back-link">
+                            <p style="color: rgba(255, 255, 255, 0.8);">
+                                <a href="login.html">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Login
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let video = document.getElementById('video');
+        let canvas = document.getElementById('canvas');
+        let context = canvas.getContext('2d');
+        let capturePhotoBtn = document.getElementById('capturePhoto');
+        let retakePhotoBtn = document.getElementById('retakePhoto');
+        let submitBtn = document.getElementById('submitBtn');
+        let imageDataInput = document.getElementById('imageData');
+        let statusIndicator = document.getElementById('statusIndicator');
+        let statusText = document.getElementById('statusText');
+        let imagePreview = document.getElementById('imagePreview');
+        let previewImage = document.getElementById('previewImage');
+        let faceGuide = document.getElementById('faceGuide');
+        let stream = null;
+
+        // Auto-start camera when page loads
+        window.addEventListener('load', function() {
+            setTimeout(startCamera, 1000); // Small delay to ensure page is fully loaded
+        });
+
+        // Start Camera Function
+        async function startCamera() {
+            try {
+                updateStatus('loading', '<span class="loading-spinner"></span> Starting camera...');
+                
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 640 }, 
+                        height: { ideal: 480 },
+                        facingMode: 'user'
+                    } 
+                });
+                
+                video.srcObject = stream;
+                
+                video.onloadedmetadata = () => {
+                    video.play();
+                    updateStatus('active', 'Camera ready - Position your face for verification');
+                    capturePhotoBtn.disabled = false;
+                    faceGuide.style.display = 'block';
+                };
+                
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                updateStatus('inactive', 'Camera access denied or not available');
+                showCameraError(error);
+            }
+        }
+
+        // Update Status Function
+        function updateStatus(type, message) {
+            statusIndicator.className = `status-indicator ${type}`;
+            statusText.innerHTML = message;
+        }
+
+        // Show Camera Error
+        function showCameraError(error) {
+            const errorMessage = document.createElement('div');
+            errorMessage.style.cssText = `
+                background: rgba(239, 68, 68, 0.1);
+                border: 1px solid rgba(239, 68, 68, 0.3);
+                border-radius: 10px;
+                padding: 1rem;
+                margin: 1rem 0;
+                color: #ef4444;
+                text-align: center;
+            `;
+            errorMessage.innerHTML = `
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Unable to access camera. Please ensure you have granted camera permissions and try refreshing the page.
+                <br><small>Error: ${error.message}</small>
+            `;
+            
+            document.querySelector('.camera-frame').parentNode.insertBefore(errorMessage, document.querySelector('.camera-controls'));
+        }
+
+        // Capture Photo
+        capturePhotoBtn.addEventListener('click', function() {
+            if (!stream) {
+                alert('Camera not available');
+                return;
+            }
+
+            // Add capture animation
+            capturePhotoBtn.innerHTML = '<span class="loading-spinner"></span> Capturing...';
+            capturePhotoBtn.disabled = true;
+
+            setTimeout(() => {
+                // Draw video frame to canvas
+                context.drawImage(video, 0, 0, 640, 480);
+                
+                // Convert to base64
+                let imageData = canvas.toDataURL('image/jpeg', 0.8);
+                imageDataInput.value = imageData.split(',')[1]; // Remove data:image/jpeg;base64, prefix
+                
+                // Show preview
+                previewImage.src = imageData;
+                imagePreview.classList.add('show');
+                
+                // Stop video stream
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+                video.srcObject = null;
+                
+                // Update UI
+                updateStatus('inactive', 'Identity photo captured successfully');
+                faceGuide.style.display = 'none';
+                capturePhotoBtn.style.display = 'none';
+                retakePhotoBtn.style.display = 'inline-block';
+                submitBtn.disabled = false;
+                
+                // Show success message
+                setTimeout(() => {
+                    updateStatus('active', 'Ready to verify - Photo captured successfully');
+                }, 1000);
+                
+            }, 500);
+        });
+
+        // Retake Photo
+        retakePhotoBtn.addEventListener('click', function() {
+            // Reset form
+            imageDataInput.value = '';
+            imagePreview.classList.remove('show');
+            previewImage.src = '';
+            
+            // Update UI
+            capturePhotoBtn.innerHTML = '<i class="fas fa-camera me-2"></i>Capture Photo';
+            capturePhotoBtn.style.display = 'inline-block';
+            retakePhotoBtn.style.display = 'none';
+            submitBtn.disabled = true;
+            
+            // Restart camera
+            startCamera();
+        });
+
+        // Form submission
+        document.querySelector('form').addEventListener('submit', function(e) {
+            if (!imageDataInput.value) {
+                e.preventDefault();
+                alert('Please capture your photo for identity verification.');
+                return;
+            }
+            
+            submitBtn.innerHTML = '<span class="loading-spinner"></span> Verifying identity...';
+            submitBtn.disabled = true;
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        });
+
+        // Handle visibility change (when user switches tabs)
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                // Page is hidden, pause video if needed
+                if (video && !video.paused) {
+                    video.pause();
+                }
+            } else {
+                // Page is visible again, resume video
+                if (video && video.paused && stream) {
+                    video.play();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+{% endblock %}

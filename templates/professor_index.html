@@ -1,0 +1,488 @@
+{% extends 'professor_dashboard.html' %}
+{% block body %}
+<div class="container-fluid">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="welcome-card bg-gradient-primary text-white rounded-lg shadow-lg p-4">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <div class="welcome-content">
+                            <h2 class="mb-2">Welcome back, Professor {{session.name}}!</h2>
+                            <p class="mb-3 opacity-90">Manage your exams, monitor students, and ensure academic
+                                integrity with ExamShield.ai</p>
+                            <div class="stats-row d-flex gap-4">
+                                <div class="stat-item">
+                                    <div class="stat-number">12</div>
+                                    <div class="stat-label">Active Exams</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">248</div>
+                                    <div class="stat-label">Students</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">95%</div>
+                                    <div class="stat-label">Success Rate</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-center">
+                        <lottie-player src="https://assets1.lottiefiles.com/packages/lf20_wEt2nn.json"
+                            background="transparent" speed="1" style="width: 250px; height: 180px;" loop autoplay>
+                        </lottie-player>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4 class="section-title mb-3">
+                <i class="fas fa-bolt text-primary me-2"></i>Quick Actions
+            </h4>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="action-card h-100">
+                <div class="action-icon bg-primary">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <h5>Create New Exam</h5>
+                <p class="text-muted">Set up objective or subjective examinations</p>
+                <div class="action-buttons">
+                    <a href="/create_test" class="btn btn-primary btn-sm me-2">Objective</a>
+                    <a href="/create_test_lqa" class="btn btn-outline-primary btn-sm">Subjective</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="action-card h-100">
+                <div class="action-icon bg-success">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <h5>Monitor Exams</h5>
+                <p class="text-muted">Real-time proctoring and surveillance</p>
+                <div class="action-buttons">
+                    <a href="/monitor_exams" class="btn btn-success btn-sm">View Live</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="action-card h-100">
+                <div class="action-icon bg-info">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h5>View Results</h5>
+                <p class="text-muted">Analyze performance and generate reports</p>
+                <div class="action-buttons">
+                    <a href="/exam_results" class="btn btn-info btn-sm">View Reports</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="action-card h-100">
+                <div class="action-icon bg-warning">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h5>Manage Students</h5>
+                <p class="text-muted">Student enrollment and management</p>
+                <div class="action-buttons">
+                    <a href="/manage_students" class="btn btn-warning btn-sm">Manage</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity & Upcoming Exams -->
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clock text-primary me-2"></i>Recent Activity
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="activity-timeline">
+                        <div class="activity-item">
+                            <div class="activity-marker bg-success"></div>
+                            <div class="activity-content">
+                                <div class="activity-header">
+                                    <h6 class="mb-1">Mathematics Exam Completed</h6>
+                                    <small class="text-muted">2 hours ago</small>
+                                </div>
+                                <p class="text-muted mb-0">45 students participated • Average score: 78%</p>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-marker bg-primary"></div>
+                            <div class="activity-content">
+                                <div class="activity-header">
+                                    <h6 class="mb-1">Physics Quiz Created</h6>
+                                    <small class="text-muted">5 hours ago</small>
+                                </div>
+                                <p class="text-muted mb-0">Scheduled for tomorrow at 10:00 AM</p>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-marker bg-warning"></div>
+                            <div class="activity-content">
+                                <div class="activity-header">
+                                    <h6 class="mb-1">Proctoring Alert</h6>
+                                    <small class="text-muted">1 day ago</small>
+                                </div>
+                                <p class="text-muted mb-0">3 suspicious activities detected in Chemistry exam</p>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-marker bg-info"></div>
+                            <div class="activity-content">
+                                <div class="activity-header">
+                                    <h6 class="mb-1">New Student Enrolled</h6>
+                                    <small class="text-muted">2 days ago</small>
+                                </div>
+                                <p class="text-muted mb-0">John Smith joined Advanced Mathematics course</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calendar-alt text-primary me-2"></i>Upcoming Exams
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="upcoming-exam-item">
+                        <div class="exam-date">
+                            <div class="date-day">15</div>
+                            <div class="date-month">Dec</div>
+                        </div>
+                        <div class="exam-details">
+                            <h6 class="mb-1">Advanced Physics</h6>
+                            <p class="text-muted mb-0">10:00 AM - 12:00 PM</p>
+                            <small class="text-success">32 students enrolled</small>
+                        </div>
+                    </div>
+                    <div class="upcoming-exam-item">
+                        <div class="exam-date">
+                            <div class="date-day">18</div>
+                            <div class="date-month">Dec</div>
+                        </div>
+                        <div class="exam-details">
+                            <h6 class="mb-1">Calculus Final</h6>
+                            <p class="text-muted mb-0">2:00 PM - 4:00 PM</p>
+                            <small class="text-warning">28 students enrolled</small>
+                        </div>
+                    </div>
+                    <div class="upcoming-exam-item">
+                        <div class="exam-date">
+                            <div class="date-day">22</div>
+                            <div class="date-month">Dec</div>
+                        </div>
+                        <div class="exam-details">
+                            <h6 class="mb-1">Chemistry Lab Test</h6>
+                            <p class="text-muted mb-0">9:00 AM - 11:00 AM</p>
+                            <small class="text-info">15 students enrolled</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-server text-primary me-2"></i>System Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="status-item">
+                                <div class="status-icon bg-success">
+                                    <i class="fas fa-video"></i>
+                                </div>
+                                <div class="status-details">
+                                    <h6 class="mb-0">Proctoring System</h6>
+                                    <small class="text-success">Online</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="status-item">
+                                <div class="status-icon bg-success">
+                                    <i class="fas fa-database"></i>
+                                </div>
+                                <div class="status-details">
+                                    <h6 class="mb-0">Database</h6>
+                                    <small class="text-success">Operational</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="status-item">
+                                <div class="status-icon bg-warning">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <div class="status-details">
+                                    <h6 class="mb-0">Security</h6>
+                                    <small class="text-warning">Monitoring</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="status-item">
+                                <div class="status-icon bg-success">
+                                    <i class="fas fa-cloud"></i>
+                                </div>
+                                <div class="status-details">
+                                    <h6 class="mb-0">Cloud Storage</h6>
+                                    <small class="text-success">Available</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Enhanced Dashboard Styles */
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    }
+
+    .welcome-card {
+        border: none;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .welcome-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="5" cy="5" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+        opacity: 0.3;
+    }
+
+    .welcome-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .stats-row {
+        margin-top: 1rem;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        opacity: 0.9;
+    }
+
+    .section-title {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .action-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        text-align: center;
+    }
+
+    .action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .action-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .action-card h5 {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #2c3e50;
+    }
+
+    .action-buttons {
+        margin-top: 1rem;
+    }
+
+    .activity-timeline {
+        position: relative;
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .activity-item:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        left: 11px;
+        top: 30px;
+        width: 2px;
+        height: calc(100% + 10px);
+        background: #e9ecef;
+    }
+
+    .activity-marker {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        margin-right: 1rem;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 2;
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 0.25rem;
+    }
+
+    .activity-header h6 {
+        margin: 0;
+        flex: 1;
+    }
+
+    .upcoming-exam-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid #f1f3f4;
+    }
+
+    .upcoming-exam-item:last-child {
+        border-bottom: none;
+    }
+
+    .exam-date {
+        text-align: center;
+        margin-right: 1rem;
+        min-width: 50px;
+    }
+
+    .date-day {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #667eea;
+        line-height: 1;
+    }
+
+    .date-month {
+        font-size: 0.75rem;
+        color: #6c757d;
+        text-transform: uppercase;
+    }
+
+    .exam-details h6 {
+        margin-bottom: 0.25rem;
+        color: #2c3e50;
+    }
+
+    .status-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .status-item:hover {
+        background: #e9ecef;
+    }
+
+    .status-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+        color: white;
+    }
+
+    .status-details h6 {
+        margin-bottom: 0.25rem;
+        font-size: 0.875rem;
+        color: #2c3e50;
+    }
+
+    @media (max-width: 768px) {
+        .stats-row {
+            flex-direction: column;
+            gap: 1rem !important;
+        }
+
+        .action-card {
+            padding: 1.5rem;
+        }
+
+        .activity-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .welcome-card .row {
+            text-align: center;
+        }
+
+        .welcome-card lottie-player {
+            width: 200px !important;
+            height: 150px !important;
+        }
+    }
+</style>
+{% endblock %}

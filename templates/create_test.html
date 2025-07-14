@@ -1,0 +1,323 @@
+{% extends 'professor_dashboard.html' %}
+{% block body %}
+{% from "includes/_formhelpers.html" import render_field %}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header Section -->
+            <div class="form-header text-center mb-4">
+                <div class="form-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <h2 class="form-title">Create Objective Exam</h2>
+                <p class="form-subtitle">Set up multiple choice questions and automated grading</p>
+            </div>
+
+            <!-- Main Form Card -->
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-4 p-lg-5">
+                    <form method="POST" action="" enctype="multipart/form-data" class="exam-form">
+                        {{ form.csrf_token }}
+                        
+                        <!-- Basic Information Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-info-circle me-2"></i>Basic Information
+                            </h4>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Subject</label>
+                                    {{render_field(form.subject, class="form-control form-control-lg", placeholder="Enter subject name")}}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Topic</label>
+                                    {{render_field(form.topic, class="form-control form-control-lg", placeholder="Enter exam topic")}}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Schedule Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-calendar-alt me-2"></i>Exam Schedule
+                            </h4>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Start Date</label>
+                                    {{render_field(form.start_date, class="form-control form-control-lg")}}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Start Time</label>
+                                    {{render_field(form.start_time, class="form-control form-control-lg")}}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">End Date</label>
+                                    {{render_field(form.end_date, class="form-control form-control-lg")}}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">End Time</label>
+                                    {{render_field(form.end_time, class="form-control form-control-lg")}}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security & Access Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-lock me-2"></i>Security & Access
+                            </h4>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Exam Password</label>
+                                    {{render_field(form.password, class="form-control form-control-lg", placeholder="Enter secure password")}}
+                                    <small class="form-text text-muted">Students will need this password to access the exam</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Duration (minutes)</label>
+                                    {{render_field(form.duration, class="form-control form-control-lg", placeholder="e.g., 120")}}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Questions Upload Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-upload me-2"></i>Questions Upload
+                            </h4>
+                            <div class="upload-area">
+                                <div class="upload-instructions">
+                                    <i class="fas fa-file-csv fa-3x text-primary mb-3"></i>
+                                    <h5>Upload Questions File</h5>
+                                    <p class="text-muted">Upload a CSV file containing your objective questions</p>
+                                </div>
+                                <div class="mb-3">
+                                    {{form.hidden_tag()}}
+                                    {{render_field(form.doc, class="form-control form-control-lg")}}
+                                </div>
+                                <div class="template-download">
+                                    <a href="static/questions/objectiveexam.csv" class="btn btn-outline-primary">
+                                        <i class="fas fa-download me-2"></i>Download Template
+                                    </a>
+                                    <small class="form-text text-muted d-block mt-2">
+                                        Download the template to see the required format for questions
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Exam Settings Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-cogs me-2"></i>Exam Settings
+                            </h4>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Negative Marking</label>
+                                    {{render_field(form.neg_mark, class="form-control form-control-lg", placeholder="e.g., 0.25")}}
+                                    <small class="form-text text-muted">Points deducted for wrong answers</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check-container">
+                                        <label class="form-label">Additional Options</label>
+                                        <div class="form-check">
+                                            {{render_field(form.calc, class="form-check-input")}}
+                                            <label class="form-check-label" for="calc">
+                                                Allow Calculator
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Proctoring Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-eye me-2"></i>Proctoring Settings
+                            </h4>
+                            <div class="proctoring-options">
+                                {{render_field(form.proctor_type, class="form-control form-control-lg")}}
+                                <small class="form-text text-muted">
+                                    Choose the level of proctoring for this exam
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Submit Section -->
+                        <div class="form-actions text-center">
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="fas fa-plus-circle me-2"></i>Create Exam
+                            </button>
+                            <a href="/professor_index" class="btn btn-outline-secondary btn-lg px-5 ms-3">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Enhanced Form Styles */
+.form-header {
+    margin-bottom: 2rem;
+}
+
+.form-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+    font-size: 2rem;
+}
+
+.form-title {
+    color: #2c3e50;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.form-subtitle {
+    color: #6c757d;
+    font-size: 1.1rem;
+}
+
+.card {
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.form-section {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.form-section:last-of-type {
+    border-bottom: none;
+    margin-bottom: 1rem;
+}
+
+.section-title {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #667eea;
+    display: inline-block;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.form-control-lg {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control-lg:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.upload-area {
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.upload-instructions h5 {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.template-download {
+    margin-top: 1rem;
+}
+
+.form-check-container {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.form-check {
+    padding: 0.5rem 0;
+}
+
+.form-check-input {
+    margin-right: 0.5rem;
+}
+
+.proctoring-options {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.form-actions {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #f1f3f4;
+}
+
+.btn-lg {
+    padding: 0.75rem 2rem;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.btn-outline-secondary:hover {
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .form-actions .btn {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .form-actions .btn:last-child {
+        margin-bottom: 0;
+    }
+    
+    .card-body {
+        padding: 2rem 1rem;
+    }
+}
+</style>
+{% endblock %}

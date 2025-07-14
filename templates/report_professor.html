@@ -1,0 +1,273 @@
+{% extends 'professor_dashboard.html' %}
+{% block body %}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-4 p-lg-5">
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <div class="page-icon report-problems">
+                            <i class="fas fa-bug"></i>
+                        </div>
+                        <h3 class="page-title">REPORT PROBLEMS</h3>
+                        <p class="page-subtitle">Help us improve by reporting issues or suggestions</p>
+                    </div>
+
+                    <!-- Support Image -->
+                    <div class="text-center mb-4">
+                        <img src="{{ url_for('static', filename='report_bug.png') }}" 
+                             alt="Report Bug" 
+                             class="support-image">
+                    </div>
+
+                    <!-- Form Section -->
+                    <div class="form-container">
+                        <form action="/report_professor_email" method="POST" class="report-form">
+                            <div class="form-group mb-4">
+                                <label class="form-label" for="problemCategory">Problem Category</label>
+                                <div class="select-wrapper">
+                                    <select class="form-select form-select-lg" id="problemCategory" name="prob_type" required>
+                                        <option value="" disabled selected>Select problem category</option>
+                                        <option value="Login/Register/Face Verification">🔐 Login/Register/Face Verification</option>
+                                        <option value="Exam/Create/View/Update/Delete">📝 Exam/Create/View/Update/Delete</option>
+                                        <option value="Student Monitoring">👁️ Student Monitoring</option>
+                                        <option value="Insert Marks/Publish Results">📊 Insert Marks/Publish Results</option>
+                                        <option value="Payment">💳 Payment</option>
+                                        <option value="Others">🔧 Others</option>
+                                    </select>
+                                    <div class="select-icon">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-4">
+                                <label class="form-label" for="messageText">Your Message</label>
+                                <textarea 
+                                    name="rquery" 
+                                    id="messageText"
+                                    class="form-control form-control-lg" 
+                                    placeholder="How can we help? Describe your problem or suggestion in detail..."
+                                    rows="5" 
+                                    required>
+                                </textarea>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Please provide as much detail as possible to help us assist you better
+                                </div>
+                            </div>
+
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary btn-lg px-5">
+                                    <i class="fas fa-paper-plane me-2"></i>REPORT!
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Contact Info -->
+                    <div class="contact-info mt-4">
+                        <div class="info-card">
+                            <div class="info-icon">
+                                <i class="fas fa-headset"></i>
+                            </div>
+                            <div class="info-content">
+                                <h6>Need immediate help?</h6>
+                                <p>Our support team typically responds within 24 hours</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Report Problems Styles */
+.page-icon.report-problems {
+    background: linear-gradient(135deg, #fd7e14, #e55a4e);
+}
+
+.page-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+    font-size: 2rem;
+}
+
+.page-title {
+    color: #2c3e50;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+    color: #6c757d;
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+
+.card {
+    border-radius: 20px;
+}
+
+.support-image {
+    max-width: 300px;
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+}
+
+.form-container {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 15px;
+    border: 1px solid #e9ecef;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+.select-wrapper {
+    position: relative;
+}
+
+.form-select {
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    padding: 1rem 3rem 1rem 1rem;
+    background: white;
+    transition: all 0.3s ease;
+    appearance: none;
+}
+
+.form-select:focus {
+    border-color: #fd7e14;
+    box-shadow: 0 0 0 0.2rem rgba(253, 126, 20, 0.25);
+}
+
+.select-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    pointer-events: none;
+}
+
+.form-control {
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #fd7e14;
+    box-shadow: 0 0 0 0.2rem rgba(253, 126, 20, 0.25);
+}
+
+.form-control-lg {
+    padding: 1rem;
+}
+
+.form-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #fd7e14, #e55a4e);
+    border: none;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(253, 126, 20, 0.4);
+}
+
+.contact-info {
+    text-align: center;
+}
+
+.info-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(253, 126, 20, 0.1);
+    border: 1px solid rgba(253, 126, 20, 0.2);
+    border-radius: 10px;
+    gap: 1rem;
+}
+
+.info-icon {
+    color: #fd7e14;
+    font-size: 1.5rem;
+}
+
+.info-content h6 {
+    margin: 0;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.info-content p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 2rem 1rem;
+    }
+    
+    .form-container {
+        padding: 1.5rem;
+    }
+    
+    .btn-lg {
+        width: 100%;
+        padding: 1rem;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .info-card {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .page-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    .support-image {
+        max-width: 250px;
+    }
+}
+</style>
+{% endblock %}

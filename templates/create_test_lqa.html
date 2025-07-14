@@ -1,0 +1,268 @@
+{% extends 'professor_dashboard.html' %}
+{% block body %}
+{% from "includes/_formhelpers.html" import render_field %}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header Section -->
+            <div class="form-header text-center mb-4">
+                <div class="form-icon subjective">
+                    <i class="fas fa-edit"></i>
+                </div>
+                <h2 class="form-title">Create Subjective Exam</h2>
+                <p class="form-subtitle">Set up essay questions and manual evaluation</p>
+            </div>
+
+            <!-- Main Form Card -->
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-4 p-lg-5">
+                    <form method="POST" action="" enctype="multipart/form-data" class="exam-form">
+                        {{ form.csrf_token }}
+                        
+                        <!-- Basic Information Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-info-circle me-2"></i>Basic Information
+                            </h4>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Subject</label>
+                                    {{render_field(form.subject, class="form-control form-control-lg", placeholder="Enter subject name")}}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Topic</label>
+                                    {{render_field(form.topic, class="form-control form-control-lg", placeholder="Enter exam topic")}}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Schedule Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-calendar-alt me-2"></i>Exam Schedule
+                            </h4>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Start Date</label>
+                                    {{render_field(form.start_date, class="form-control form-control-lg")}}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Start Time</label>
+                                    {{render_field(form.start_time, class="form-control form-control-lg")}}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">End Date</label>
+                                    {{render_field(form.end_date, class="form-control form-control-lg")}}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">End Time</label>
+                                    {{render_field(form.end_time, class="form-control form-control-lg")}}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security & Access Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-lock me-2"></i>Security & Access
+                            </h4>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Exam Password</label>
+                                    {{render_field(form.password, class="form-control form-control-lg", placeholder="Enter secure password")}}
+                                    <small class="form-text text-muted">Students will need this password to access the exam</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Duration (minutes)</label>
+                                    {{render_field(form.duration, class="form-control form-control-lg", placeholder="e.g., 180")}}
+                                    <small class="form-text text-muted">Recommended: 3+ hours for subjective exams</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Questions Upload Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-upload me-2"></i>Questions Upload
+                            </h4>
+                            <div class="upload-area subjective">
+                                <div class="upload-instructions">
+                                    <i class="fas fa-file-alt fa-3x text-success mb-3"></i>
+                                    <h5>Upload Subjective Questions</h5>
+                                    <p class="text-muted">Upload a CSV file containing your essay/descriptive questions</p>
+                                </div>
+                                <div class="mb-3">
+                                    {{form.hidden_tag()}}
+                                    {{render_field(form.doc, class="form-control form-control-lg")}}
+                                </div>
+                                <div class="template-download">
+                                    <a href="static/questions/subjectiveexam.csv" class="btn btn-outline-success">
+                                        <i class="fas fa-download me-2"></i>Download Template
+                                    </a>
+                                    <small class="form-text text-muted d-block mt-2">
+                                        Download the template to see the required format for subjective questions
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Subjective Exam Features -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-clipboard-check me-2"></i>Subjective Exam Features
+                            </h4>
+                            <div class="features-grid">
+                                <div class="feature-item">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-pen-fancy"></i>
+                                    </div>
+                                    <h6>Essay Questions</h6>
+                                    <p class="text-muted">Long-form answers with rich text editor</p>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-user-graduate"></i>
+                                    </div>
+                                    <h6>Manual Evaluation</h6>
+                                    <p class="text-muted">Professor reviews and grades each answer</p>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-comments"></i>
+                                    </div>
+                                    <h6>Feedback System</h6>
+                                    <p class="text-muted">Provide detailed feedback to students</p>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-file-upload"></i>
+                                    </div>
+                                    <h6>File Attachments</h6>
+                                    <p class="text-muted">Students can upload supporting documents</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Proctoring Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-eye me-2"></i>Proctoring Settings
+                            </h4>
+                            <div class="proctoring-options subjective">
+                                {{render_field(form.proctor_type, class="form-control form-control-lg")}}
+                                <small class="form-text text-muted">
+                                    Subjective exams typically require enhanced monitoring due to longer duration
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Submit Section -->
+                        <div class="form-actions text-center">
+                            <button type="submit" class="btn btn-success btn-lg px-5">
+                                <i class="fas fa-plus-circle me-2"></i>Create Subjective Exam
+                            </button>
+                            <a href="/professor_index" class="btn btn-outline-secondary btn-lg px-5 ms-3">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Subjective Exam Specific Styles */
+.form-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+    font-size: 2rem;
+}
+
+
+.upload-area.subjective {
+    border-color: #28a745;
+}
+
+.upload-area.subjective:hover {
+    border-color: #20c997;
+    background: rgba(40, 167, 69, 0.05);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.feature-item {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 15px;
+    border: 2px solid #f1f3f4;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+    border-color: #28a745;
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.15);
+}
+
+.feature-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+    font-size: 1.25rem;
+}
+
+.feature-item h6 {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.proctoring-options.subjective {
+    border-color: #28a745;
+    background: rgba(40, 167, 69, 0.05);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+}
+
+@media (max-width: 768px) {
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .feature-item {
+        padding: 1rem;
+    }
+}
+</style>
+{% endblock %}

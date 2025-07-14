@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>ExamShield.ai</title>
+    <link rel="canonical" href="https://themesberg.com/product/admin-dashboard/volt-premium-bootstrap-5-dashboard">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.7/css/all.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="120x120" href="{{ url_for('static', filename='assets/img/favicon/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='assets/img/favicon/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16"  href="{{ url_for('static', filename='assets/img/favicon/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='assets/img/favicon/site.webmanifest') }}">
+    <link rel="mask-icon" color="#ffffff"  href="{{ url_for('static', filename='assets/img/favicon/safari-pinned-tab.svg') }}">
+    
+    <!-- Fontawesome -->
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='vendor/@fortawesome/fontawesome-free/css/all.min.css') }}">
+    
+    <!-- Volt CSS -->
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='volt/css/volt.css') }}">
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.6.5/css/buttons.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.6.5/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.6.5/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.6.5/js/buttons.print.min.js"></script>
+    
+    <!--Lottie Js-->
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <!-- Mobile Navigation -->
+    <nav class="navbar navbar-dark navbar-theme-primary px-4 col-12 d-md-none mobile-nav">
+        <a class="navbar-brand me-lg-5" href="/professor_index">
+            <center>
+                <lottie-player 
+                    src="https://assets1.lottiefiles.com/packages/lf20_wEt2nn.json"
+                    background="transparent"
+                    speed="1"
+                    style="width: 75px; height: 50px;"
+                    loop
+                    autoplay>
+                </lottie-player>
+            </center>
+        </a>
+        <div class="d-flex align-items-center">
+            <button class="navbar-toggler d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Enhanced Sidebar -->
+    <nav id="sidebarMenu" class="sidebar d-md-block enhanced-sidebar collapse" data-simplebar>
+        <div class="sidebar-inner">
+            <!-- Logo Section -->
+            <div class="sidebar-logo">
+                <a href="/professor_index" class="logo-link">
+                    <lottie-player 
+                        src="https://assets1.lottiefiles.com/packages/lf20_wEt2nn.json"
+                        background="transparent"
+                        speed="1"
+                        style="width: 50px; height: 40px;"
+                        loop
+                        autoplay>
+                    </lottie-player>
+                    <span class="logo-text">ExamShield.ai</span>
+                </a>
+            </div>
+
+            <!-- User Profile Section -->
+            <div class="user-profile-section">
+                <div class="user-avatar">
+                    <img src="{{ url_for('static', filename='user-profile.png') }}" alt="{{session.name}}" class="avatar-img">
+                    <div class="status-indicator"></div>
+                </div>
+                <div class="user-info">
+                    <h6 class="user-name">{{session.name}}</h6>
+                    <span class="user-role">Professor</span>
+                </div>
+                <div class="profile-actions">
+                    <a href="/professor_profile" class="profile-btn" title="View Profile">
+                        <i class="fas fa-user"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Navigation Menu -->
+            <ul class="nav flex-column sidebar-nav">
+                <!-- Dashboard -->
+                <li class="nav-item">
+                    <a href="/professor_index" class="nav-link">
+                        <div class="nav-icon">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
+
+                <!-- Create Exam Section -->
+                <li class="nav-item has-submenu">
+                    <a class="nav-link submenu-toggle" data-bs-toggle="collapse" data-bs-target="#createExamSubmenu" aria-expanded="false">
+                        <div class="nav-icon">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <span class="nav-text">Create Exam</span>
+                        <div class="submenu-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </a>
+                    <div class="collapse submenu" id="createExamSubmenu">
+                        <ul class="submenu-list">
+                            <li class="submenu-item">
+                                <a href="/create-test" class="submenu-link">
+                                    <i class="fas fa-list-ul"></i>
+                                    <span>Objective</span>
+                                </a>
+                            </li>
+                            <li class="submenu-item">
+                                <a href="/create_test_lqa" class="submenu-link">
+                                    <i class="fas fa-edit"></i>
+                                    <span>Subjective</span>
+                                </a>
+                            </li>
+                            <li class="submenu-item">
+                                <a href="/create_test_pqa" class="submenu-link">
+                                    <i class="fas fa-code"></i>
+                                    <span>Practical</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <!-- AI Features -->
+                <li class="nav-item">
+                    <a href="/generate_test" class="nav-link">
+                        <div class="nav-icon ai-icon">
+                            <i class="fas fa-magic"></i>
+                        </div>
+                        <span class="nav-text">Generate Questions</span>
+                        <span class="nav-badge ai-badge">AI</span>
+                    </a>
+                </li>
+
+                <!-- Question Management -->
+                <li class="nav-item">
+                    <a href="/viewquestions" class="nav-link">
+                        <div class="nav-icon">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <span class="nav-text">View Questions</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="/updatetidlist" class="nav-link">
+                        <div class="nav-icon">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <span class="nav-text">Update Questions</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="/deltidlist" class="nav-link">
+                        <div class="nav-icon">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                        <span class="nav-text">Delete Questions</span>
+                    </a>
+                </li>
+
+                <!-- Exam Management -->
+                <li class="nav-item">
+                    <a href="/{{session.email}}/disptests" class="nav-link">
+                        <div class="nav-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <span class="nav-text">Exam History</span>
+                    </a>
+                </li>
+
+                <!-- Monitoring -->
+                <li class="nav-item">
+                    <a href="/livemonitoringtid" class="nav-link">
+                        <div class="nav-icon">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <span class="nav-text">Live Monitoring</span>
+                        <span class="nav-badge live-badge">LIVE</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="/viewstudentslogs" class="nav-link">
+                        <div class="nav-icon">
+                            <i class="fas fa-binoculars"></i>
+                        </div>
+                        <span class="nav-text">Student Monitoring</span>
+                    </a>
+                </li>
+
+                <!-- Results Management -->
+                <li class="nav-item">
+                    <a href="/insertmarkstid" class="nav-link">
+                        <div class="nav-icon">
+                            <i class="fas fa-spell-check"></i>
+                        </div>
+                        <span class="nav-text">Insert Marks</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="/publish-results-testid" class="nav-link">
+                        <div class="nav-icon">
+                            <i class="fas fa-bullhorn"></i>
+                        </div>
+                        <span class="nav-text">Publish Results</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="/{{session.email}}/tests-created" class="nav-link">
+                        <div class="nav-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <span class="nav-text">Results</span>
+                    </a>
+                </li>
+
+                <!-- Divider -->
+                <li class="nav-divider"></li>
+
+                <!-- Account & Support -->
+                <li class="nav-item">
+                    <a href="/professor_profile" class="nav-link">
+                        <div class="nav-icon">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <span class="nav-text">Profile</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="/report_professor" class="nav-link">
+                        <div class="nav-icon">
+                            <i class="fas fa-bug"></i>
+                        </div>
+                        <span class="nav-text">Report Problems</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="/payment" class="nav-link">
+                        <div class="nav-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <span class="nav-text">Payment</span>
+                        <span class="nav-badge premium-badge">PRO</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="/changepassword_professor" class="nav-link">
+                        <div class="nav-icon">
+                            <i class="fas fa-key"></i>
+                        </div>
+                        <span class="nav-text">Change Password</span>
+                    </a>
+                </li>
+
+                <!-- Logout -->
+                <li class="nav-item logout-item">
+                    <a href="#" onclick="return funLogout()" class="nav-link logout-link">
+                        <div class="nav-icon">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <span class="nav-text">Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="content">
+        <nav class="navbar navbar-top navbar-expand navbar-dashboard navbar-dark ps-0 pe-2 pb-0">
+            <div class="container-fluid px-0">
+                <div class="d-flex justify-content-between w-100" id="navbarSupportedContent">
+                    <div class="h-100 row align-items-center">
+                        {% include 'includes/_messages.html' %}
+                        {% block body %}{% endblock %}
+                        
+                        <footer id="sticky-footer" class="py-4">
+                            <div class="d-flex text-center justify-content-center align-items-center" role="contentinfo">
+                                <p class="font-weight-bold font-medium mb-0">Copyright © ExamShield.ai
+                                    <span class="current-year"><script>document.write(new Date().getFullYear())</script></span>. All rights reserved.
+                                </p>
+                            </div>
+                            <br>
+                            <div class="d-flex text-center justify-content-center align-items-center" role="contentinfo">
+                                <p class="font-weight-bold font-small mb-0">
+                                    <span><a href="">Made with &#128151 By XBOT</a></span>
+                                </p>
+                            </div>
+                        </footer>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </main>
+
+    <!-- Enhanced Sidebar Styles -->
+    <style>
+    /* ExamShield AI Color Variables */
+    :root {
+        --examshield-primary: #667eea;
+        --examshield-secondary: #764ba2;
+        --examshield-accent: #f093fb;
+        --examshield-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        --examshield-gradient-hover: linear-gradient(135deg, #5a6fd8 0%, #6a4190 50%, #de7fe9 100%);
+        --examshield-dark: #2c3e50;
+        --examshield-light: rgba(255, 255, 255, 0.1);
+        --examshield-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        --examshield-shadow-hover: 0 15px 40px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Mobile Navigation */
+    .mobile-nav {
+        background: var(--examshield-gradient) !important;
+        box-shadow: var(--examshield-shadow);
+    }
+
+    /* Enhanced Sidebar */
+    .enhanced-sidebar {
+        width: 280px;
+        background: var(--examshield-gradient);
+        backdrop-filter: blur(20px);
+        border: none;
+        box-shadow: var(--examshield-shadow);
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 1000;
+        overflow-y: auto;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .enhanced-sidebar::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="15" height="15" patternUnits="userSpaceOnUse"><circle cx="7.5" cy="7.5" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+        opacity: 0.3;
+    }
+
+    .sidebar-inner {
+        position: relative;
+        z-index: 2;
+        padding: 1.5rem 0;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Logo Section */
+    .sidebar-logo {
+        padding: 0 1.5rem 2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .logo-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 700;
+        gap: 0.5rem;
+    }
+
+    .logo-text {
+        background: linear-gradient(45deg, #ffffff, #f093fb);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* User Profile Section */
+    .user-profile-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .user-avatar {
+        position: relative;
+    }
+
+    .user-avatar .avatar-img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: 2px solid white;
+    }
+
+    .status-indicator {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 12px;
+        height: 12px;
+        background-color: #28a745; /* Green for online */
+        border-radius: 50%;
+        border: 2px solid white;
+    }
+
+    .user-info {
+        flex-grow: 1;
+        color: white;
+    }
+
+    .user-name {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .user-role {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+
+    .profile-actions .profile-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .profile-actions .profile-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.1);
+    }
+
+    /* Navigation Menu */
+    .sidebar-nav {
+        flex-grow: 1;
+        padding: 0 1rem;
+    }
+
+    .nav-item {
+        margin-bottom: 0.5rem;
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 1rem;
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .nav-link:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        transform: translateX(5px);
+    }
+
+    .nav-link.active,
+    .nav-link[aria-expanded="true"] {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .nav-icon {
+        width: 24px;
+        text-align: center;
+        font-size: 1.1rem;
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .nav-link:hover .nav-icon,
+    .nav-link.active .nav-icon {
+        color: white;
+    }
+
+    .nav-text {
+        flex-grow: 1;
+    }
+
+    /* Submenu */
+    .has-submenu .submenu-toggle {
+        justify-content: space-between;
+    }
+
+    .submenu-arrow {
+        transition: transform 0.3s ease;
+    }
+
+    .submenu-toggle[aria-expanded="true"] .submenu-arrow {
+        transform: rotate(90deg);
+    }
+
+    .submenu {
+        padding-left: 1.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .submenu-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .submenu-item {
+        margin-bottom: 0.25rem;
+    }
+
+    .submenu-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 1rem;
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .submenu-link:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+    }
+
+    .submenu-link i {
+        font-size: 0.9rem;
+        width: 18px;
+        text-align: center;
+    }
+
+    /* Badges */
+    .nav-badge {
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        margin-left: auto;
+    }
+
+    .ai-badge {
+        background-color: #f093fb; /* Accent color from hero */
+        color: var(--examshield-dark);
+    }
+
+    .live-badge {
+        background-color: #ffc107; /* Yellow for live */
+        color: var(--examshield-dark);
+    }
+
+    .premium-badge {
+        background-color: #20c997; /* Green for premium */
+        color: white;
+    }
+
+    /* Divider */
+    .nav-divider {
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        margin: 1.5rem 0;
+        padding: 0;
+    }
+
+    /* Logout Button */
+    .logout-item {
+        margin-top: auto; /* Pushes logout to the bottom */
+        padding: 1rem 0;
+    }
+
+    .logout-link {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        justify-content: center;
+        font-weight: 600;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .logout-link:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Main Content Adjustment */
+    main.content {
+        margin-left: 280px; /* Adjust content to make space for sidebar */
+        transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Responsive adjustments for sidebar */
+    @media (max-width: 768px) {
+        .enhanced-sidebar {
+            left: -280px; /* Hide sidebar by default on mobile */
+            box-shadow: none;
+        }
+
+        .enhanced-sidebar.show {
+            left: 0; /* Show sidebar when toggled */
+            box-shadow: var(--examshield-shadow);
+        }
+
+        main.content {
+            margin-left: 0; /* No margin on mobile */
+        }
+    }
+    </style>
+
+    <script>
+    function funLogout () {
+        swal.fire({
+            title: 'Are you sure?',
+            text: "Do you really want to logout?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Logout me!',
+            cancelButtonText: 'No!',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#202124',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    type: "POST",
+                    url: "/logout",
+                    success: function(response){
+                        if(response=="success") {
+                            console.log(response);
+                            window.location.href = "/";
+                        }
+                    }
+                });
+                swal.fire(
+                    'Success!',
+                    'You are successfully signed out from the system.',
+                    'success'
+                )
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                swal.fire(
+                    'Cancelled',
+                    'Logout cancelled.',
+                    'error'
+                )
+            }
+        })
+    }
+    </script>
+    <!-- Core -->
+    <script src="{{ url_for('static', filename='vendor/@popperjs/core/dist/umd/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/dist/js/bootstrap.min.js') }}"></script>
+    
+    <!-- Vendor JS -->
+    <script src="{{ url_for('static', filename='vendor/onscreen/dist/on-screen.umd.min.js') }}"></script>
+    
+    <!-- Slider -->
+    <script src="{{ url_for('static', filename='vendor/nouislider/distribute/nouislider.min.js') }}"></script>
+    
+    <!-- Smooth scroll -->
+    <script src="{{ url_for('static', filename='vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js') }}"></script>
+    
+    <!-- Charts -->
+    <script src="{{ url_for('static', filename='vendor/chartist/dist/chartist.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/chartist-plugin-tooltips/dist/chartist-plugin-tooltip.min.js') }}"></script>
+    
+    <!-- Datepicker -->
+    <script src="{{ url_for('static', filename='vendor/vanillajs-datepicker/dist/js/datepicker.min.js') }}"></script>
+    
+    <!-- Sweet Alerts 2 -->
+    <script src="{{ url_for('static', filename='vendor/sweetalert2/dist/sweetalert2.all.min.js') }}"></script>
+    
+    <!-- Moment JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.27.0/moment.min.js"></script>
+    
+    <!-- Vanilla JS Datepicker -->
+    <script src="{{ url_for('static', filename='vendor/vanillajs-datepicker/dist/js/datepicker.min.js') }}"></script>
+    
+    <!-- Notyf -->
+    <script src="{{ url_for('static', filename='vendor/notyf/notyf.min.js') }}"></script>
+    
+    <!-- Simplebar -->
+    <script src="{{ url_for('static', filename='vendor/simplebar/dist/simplebar.min.js') }}"></script>
+    
+    <!-- Github buttons -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    
+    <!-- Volt JS -->
+    <script src="{{ url_for('static', filename='volt/css/assets/js/volt.js') }}"></script>
+</body>
+</html>

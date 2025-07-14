@@ -1,0 +1,295 @@
+{% extends 'professor_dashboard.html' %}
+{% block body %}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header Section -->
+            <div class="page-header text-center mb-4">
+                <div class="page-icon">
+                    <i class="fas fa-question-circle"></i>
+                </div>
+                <h2 class="page-title">View Questions</h2>
+                <p class="page-subtitle">Review and manage your exam questions</p>
+            </div>
+
+            {% if cresults is not none %}
+            <!-- Question Viewer Card -->
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list-alt me-2"></i>Select Exam to View Questions
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form action="displayquestions" method="POST" class="question-form">
+                        <div class="form-group mb-4">
+                            <label class="form-label">Choose Exam ID:</label>
+                            <div class="select-container">
+                                <select class="form-select form-select-lg" name="choosetid" required>
+                                    <option value="" disabled selected>Select an exam to view questions</option>
+                                    {% for test in cresults %}
+                                    <option value="{{test['test_id']}}">
+                                        ID: {{test['test_id']}} - {{test.get('subject', 'Unknown Subject')}} 
+                                        {% if test.get('topic') %}- {{test['topic']}}{% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="select-icon">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions text-center">
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="fas fa-eye me-2"></i>View Questions
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-primary">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h4>{{cresults|length}}</h4>
+                            <p>Total Exams</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h4>Active</h4>
+                            <p>System Status</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-info">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h4>Recent</h4>
+                            <p>Last Updated</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% else %}
+            <!-- No Records Found -->
+            <div class="card border-0 shadow-lg">
+                <div class="card-body text-center p-5">
+                    <div class="empty-state">
+                        <lottie-player 
+                            src="https://assets7.lottiefiles.com/datafiles/vhvOcuUkH41HdrL/data.json"
+                            background="transparent"
+                            speed="1"
+                            style="width: 300px; height: 300px;"
+                            loop
+                            autoplay>
+                        </lottie-player>
+                        <h3 class="empty-title">No Exams Found!</h3>
+                        <p class="empty-subtitle">You haven't created any exams yet. Create your first exam to get started.</p>
+                        <div class="empty-actions">
+                            <a href="/create_test" class="btn btn-primary me-2">
+                                <i class="fas fa-plus me-2"></i>Create Objective Exam
+                            </a>
+                            <a href="/create_test_lqa" class="btn btn-success me-2">
+                                <i class="fas fa-edit me-2"></i>Create Subjective Exam
+                            </a>
+                            <a href="/create_prac_qa" class="btn btn-warning">
+                                <i class="fas fa-code me-2"></i>Create Practical Exam
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+/* View Questions Specific Styles */
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+    font-size: 2rem;
+}
+
+.page-title {
+    color: #2c3e50;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+    color: #6c757d;
+    font-size: 1.1rem;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.card {
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.card-header {
+    border: none;
+    padding: 1.5rem 2rem;
+}
+
+.question-form {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.select-container {
+    position: relative;
+}
+
+.form-select {
+    border-radius: 15px;
+    border: 2px solid #e9ecef;
+    padding: 1rem 3rem 1rem 1rem;
+    background: white;
+    transition: all 0.3s ease;
+    appearance: none;
+}
+
+.form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.select-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    pointer-events: none;
+}
+
+.form-actions {
+    margin-top: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: white;
+    font-size: 1.25rem;
+}
+
+.stat-content h4 {
+    margin: 0;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.stat-content p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.empty-state {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.empty-title {
+    color: #2c3e50;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.empty-subtitle {
+    color: #6c757d;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+.empty-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn {
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .empty-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .empty-actions .btn {
+        width: 100%;
+        max-width: 250px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-card {
+        margin-bottom: 1rem;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,551 @@
+{% extends 'professor_dashboard.html' %}
+{% block body %}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Profile Header -->
+            <div class="profile-header-card">
+                <div class="profile-cover"></div>
+                <div class="profile-info">
+                    <div class="profile-avatar">
+                        <img src="{{ url_for('static', filename='user-profile.png') }}" alt="Professor Avatar" class="avatar-img">
+                        <div class="avatar-badge">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                    </div>
+                    <div class="profile-details">
+                        <h2 class="profile-name">{{session.name}}</h2>
+                        <p class="profile-role">Professor</p>
+                        <p class="profile-email">{{session.email}}</p>
+                        <div class="profile-stats">
+                            <div class="stat-item">
+                                <span class="stat-number">{{exam_count or 0}}</span>
+                                <span class="stat-label">Exams Created</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">{{student_count or 0}}</span>
+                                <span class="stat-label">Students Monitored</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">{{credits_left or 0}}</span>
+                                <span class="stat-label">Credits Left</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Content -->
+            <div class="row mt-4">
+                <!-- Personal Information -->
+                <div class="col-lg-8">
+                    <div class="card profile-card">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="fas fa-user me-2"></i>Personal Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form class="profile-form">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Full Name</label>
+                                            <input type="text" class="form-control" value="{{session.name}}" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Email Address</label>
+                                            <input type="email" class="form-control" value="{{session.email}}" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Department</label>
+                                            <input type="text" class="form-control" placeholder="Computer Science" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Institution</label>
+                                            <input type="text" class="form-control" placeholder="University Name" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="form-label">Bio</label>
+                                    <textarea class="form-control" rows="3" placeholder="Tell us about yourself..." readonly></textarea>
+                                </div>
+                                <button type="button" class="btn btn-primary" onclick="enableEdit()">
+                                    <i class="fas fa-edit me-2"></i>Edit Profile
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="card profile-card mt-4">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="fas fa-clock me-2"></i>Recent Activity
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="activity-timeline">
+                                <div class="activity-item">
+                                    <div class="activity-icon create">
+                                        <i class="fas fa-plus"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <h6>Created new exam</h6>
+                                        <p>Mathematics Final Exam - Calculus II</p>
+                                        <small class="text-muted">2 hours ago</small>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon monitor">
+                                        <i class="fas fa-eye"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <h6>Monitored live exam</h6>
+                                        <p>Physics Midterm - 45 students</p>
+                                        <small class="text-muted">1 day ago</small>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon publish">
+                                        <i class="fas fa-bullhorn"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <h6>Published results</h6>
+                                        <p>Chemistry Quiz - Results sent to 32 students</p>
+                                        <small class="text-muted">3 days ago</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <!-- Quick Actions -->
+                    <div class="card profile-card">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="fas fa-bolt me-2"></i>Quick Actions
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="quick-actions">
+                                <a href="/create-test" class="action-btn">
+                                    <i class="fas fa-plus"></i>
+                                    <span>Create Exam</span>
+                                </a>
+                                <a href="/livemonitoringtid" class="action-btn">
+                                    <i class="fas fa-video"></i>
+                                    <span>Live Monitor</span>
+                                </a>
+                                <a href="/viewquestions" class="action-btn">
+                                    <i class="fas fa-eye"></i>
+                                    <span>View Questions</span>
+                                </a>
+                                <a href="/payment" class="action-btn">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>Buy Credits</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Settings -->
+                    <div class="card profile-card mt-4">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="fas fa-cog me-2"></i>Account Settings
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="settings-list">
+                                <a href="/changepassword_professor" class="setting-item">
+                                    <i class="fas fa-key"></i>
+                                    <span>Change Password</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                                <a href="/report_professor" class="setting-item">
+                                    <i class="fas fa-bug"></i>
+                                    <span>Report Issues</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                                <div class="setting-item">
+                                    <i class="fas fa-bell"></i>
+                                    <span>Notifications</span>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" checked>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Professor Profile Styles */
+.profile-header-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.profile-cover {
+    height: 200px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    position: relative;
+}
+
+.profile-cover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="5" cy="5" r="1" fill="rgba(255,255,255,0.2)"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+}
+
+.profile-info {
+    padding: 2rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 2rem;
+    margin-top: -80px;
+    position: relative;
+    z-index: 2;
+}
+
+.profile-avatar {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.avatar-img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 5px solid white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.avatar-badge {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 35px;
+    height: 35px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    border: 3px solid white;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.profile-details {
+    flex: 1;
+    padding-top: 1rem;
+}
+
+.profile-name {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.profile-role {
+    color: #667eea;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.profile-email {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 2rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #667eea;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.profile-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.profile-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-bottom: 1px solid #e9ecef;
+    padding: 1.25rem 1.5rem;
+}
+
+.card-title {
+    margin: 0;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.form-control {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.activity-timeline {
+    position: relative;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+
+.activity-icon.create {
+    background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.activity-icon.monitor {
+    background: linear-gradient(135deg, #17a2b8, #007bff);
+}
+
+.activity-icon.publish {
+    background: linear-gradient(135deg, #fd7e14, #e55a4e);
+}
+
+.activity-content h6 {
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.activity-content p {
+    margin-bottom: 0.25rem;
+    color: #495057;
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 1rem;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 12px;
+    text-decoration: none;
+    color: #495057;
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+}
+
+.action-btn:hover {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.action-btn i {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.setting-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #495057;
+    transition: all 0.3s ease;
+    gap: 1rem;
+}
+
+.setting-item:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    color: #667eea;
+    transform: translateX(5px);
+}
+
+.setting-item i:first-child {
+    width: 20px;
+    text-align: center;
+}
+
+.setting-item span {
+    flex: 1;
+}
+
+.form-check-input:checked {
+    background-color: #667eea;
+    border-color: #667eea;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .profile-info {
+        flex-direction: column;
+        text-align: center;
+        margin-top: -60px;
+    }
+    
+    .profile-stats {
+        justify-content: center;
+    }
+    
+    .quick-actions {
+        grid-template-columns: 1fr;
+    }
+    
+    .avatar-img {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .profile-name {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .profile-stats {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .profile-cover {
+        height: 150px;
+    }
+}
+</style>
+
+<script>
+function enableEdit() {
+    const inputs = document.querySelectorAll('.profile-form input, .profile-form textarea');
+    const button = document.querySelector('.profile-form button');
+    
+    inputs.forEach(input => {
+        input.removeAttribute('readonly');
+        input.style.borderColor = '#667eea';
+    });
+    
+    button.innerHTML = '<i class="fas fa-save me-2"></i>Save Changes';
+    button.onclick = saveProfile;
+}
+
+function saveProfile() {
+    const inputs = document.querySelectorAll('.profile-form input, .profile-form textarea');
+    const button = document.querySelector('.profile-form button');
+    
+    inputs.forEach(input => {
+        input.setAttribute('readonly', true);
+        input.style.borderColor = '#e9ecef';
+    });
+    
+    button.innerHTML = '<i class="fas fa-edit me-2"></i>Edit Profile';
+    button.onclick = enableEdit;
+    
+    // Here you would typically send the data to the server
+    alert('Profile updated successfully!');
+}
+</script>
+{% endblock %}

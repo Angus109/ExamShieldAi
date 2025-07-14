@@ -1,0 +1,23 @@
+node_modules/
+dist/
+html&css/
+.temp/
+css/
+*.zip
+model_defination/yolov3.weights
+__MACOSX/
+assets/
+src/
+questions/
+volt/
+gulpfile.js
+coco models/
+flask_session
+out/
+static/vendor/
+static/volt/
+.vscode
+venv
+SCREENSHOTS
+save_model.pb
+_pycache_
