@@ -3,6 +3,8 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script type="text/javascript"> var answers = "{{answers}}";</script>
 <script>var tid = "{{tid}}";</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+
 <main>
   <section class="d-flex align-items-center my-5 mt-lg-6 mb-lg-5">
     <div class="container">
@@ -74,7 +76,6 @@
               </tr>
             </table>
           </div>
-
           <div class="row">
             <div class="form-group col-3">
               <div class="mb-0 h6">
@@ -97,67 +98,188 @@
               </div>
             </div>
           </div>
-
           <div class="form-group">
             <div class="btn btn-block btn-primary" id="finish">Finish Test</div>
           </div>
-
           <div id="msg" class="alert mt-3"></div>
           <div id="snackbar"></div>
-
-
           <div class="form-group">
             <div class="container" id="calccheck" style="display: none;">
               <iframe src="/calc" style="height:500px;width:500px;" title="Iframe Example"></iframe>
             </div>
           </div>
-
           <div class="form-group">
             <div class="container">
               <div class="justify-content-center align-items-center">
-                <div id="otEmbedContainer" id="livecheck" style="width:320px; height:320px; display: none;">
-                  <script
-                    src="https://tokbox.com/embed/embed/ot-embed.js?embedId=2020dbd9-0a89-472d-a60b-ca12ddfd48bc&room={{tid}}"></script>
+                <!-- Proctoring Video Area -->
+                <div id="proctoring-area">
+                  <!-- For proctoring_type == "0" (Automatic Monitoring) -->
+                  <div id="videocheck" style="display: none;">
+                    <video id="stream" width="320" height="320" autoplay muted playsinline></video>
+                    <canvas id="capture" width="320" height="320" style="display: none;"></canvas>
+                  </div>
+                  <!-- For proctoring_type == "1" (Live WebRTC Monitoring) -->
+                  <div id="livecheck" style="display: none;">
+                    <video id="localVideo" autoplay muted playsinline style="width:320px; height:320px; border: 1px solid #ccc;"></video>
+                    <p id="proctoringStatus" style="color: #6c757d; margin-top: 10px;">Proctoring stream active...</p>
+                  </div>
                 </div>
               </div>
             </div>
-
-            <div class="form-group">
-              <div class="container" id="videocheck" style="display: none;">
-                <div class="justify-content-center align-items-center">
-                  <video id="stream" width="320" height="320">
-                    <canvas id="capture" width="320" height="320"></canvas>
-                  </video>
-                </div>
-              </div>
-            </div>
-
           </div>
         </div>
       </div>
   </section>
 </main>
 <script type="text/javascript" src="{{ url_for('static', filename='app.js') }}"></script>
+
+
 <script>
-  var cal = "{{calc}}";
-  console.log(cal)
-  if (cal == "1") {
-    document.getElementById('calccheck').style.display = "block"
+const socket = io();
+const testId = "{{tid}}";
+const studentUid = "{{session['uid']}}";
+const roomName = testId + '-' + studentUid;
+
+const localVideo = document.getElementById('localVideo');
+const proctoringStatus = document.getElementById('proctoringStatus');
+
+let peerConnection = null;
+let localStream = null;
+let iceCandidatesQueue = []; // Queue for ICE candidates
+
+const iceServers = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+initializePeerConnection();
+
+async function startWebRTCStream() {
+    console.log("[Student] Starting WebRTC stream setup.");
+    try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        localVideo.srcObject = localStream;
+        proctoringStatus.innerText = "Camera active. Waiting for professor...";
+        console.log("[Student] Local media stream obtained.");
+
+        initializePeerConnection(); // Initialize PC after getting local stream
+        localStream.getTracks().forEach(track => {
+          peerConnection.addTrack(track, localStream);
+          console.log("[Student] Added local track to peerConnection:", track);
+        });
+
+    } catch (err) {
+        proctoringStatus.innerText = "Stream failed: " + err.message;
+        console.error("[Student] Error accessing media devices or starting WebRTC stream:", err);
+    }
+}
+
+function initializePeerConnection() {
+  console.log("[Student] Initializing RTCPeerConnection...");
+  if (peerConnection && peerConnection.signalingState !== 'closed') {
+    console.log("[Student] Existing peerConnection is not closed, closing it.");
+    peerConnection.close();
   }
-  else {
-    document.getElementById('calccheck').style.display = "none"
-  }
-  var vid = "{{proctortype}}";
-  console.log(vid)
-  if (vid == "1") {
-    document.getElementById('videocheck').style.display = "block"
-    startStreaming();
-    captureSnapshot();
-  }
-  else {
-    document.getElementById('livecheck').style.display = "block"
-  }
+  peerConnection = new RTCPeerConnection(iceServers);
+  iceCandidatesQueue = []; // Clear queue on new connection
+
+  peerConnection.onicecandidate = event => {
+      if (event.candidate) {
+          console.log("[Student] Sending ICE candidate:", event.candidate);
+          socket.emit('ice_candidate', { room: roomName, candidate: event.candidate });
+      } else {
+        console.log("[Student] ICE gathering complete.");
+      }
+  };
+
+  peerConnection.oniceconnectionstatechange = () => {
+    console.log(`[Student] ICE connection state changed: ${peerConnection.iceConnectionState}`);
+    proctoringStatus.innerText = `ICE state: ${peerConnection.iceConnectionState}`;
+  };
+
+  peerConnection.onsignalingstatechange = () => {
+    console.log(`[Student] Signaling state changed: ${peerConnection.signalingState}`);
+  };
+
+  // Student does NOT initiate offer on negotiationneeded.
+  // The professor will send the offer.
+  peerConnection.onnegotiationneeded = () => {
+    console.log("[Student] Negotiation needed, but student is responder. Waiting for offer from professor.");
+  };
+
+  peerConnection.onconnectionstatechange = () => {
+    console.log(`[Student] Peer connection state changed: ${peerConnection.connectionState}`);
+    proctoringStatus.innerText = `Connection state: ${peerConnection.connectionState}`;
+  };
+}
+
+
+socket.on('offer', async data => {
+    if (data.sender_sid !== socket.id) {
+        console.log("[Student] Received offer:", data.offer);
+        if (peerConnection && peerConnection.signalingState !== 'closed') {
+            try {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+                console.log("[Student] Remote description set from offer. Creating answer...");
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                console.log("[Student] Created and set local answer:", peerConnection.localDescription);
+                socket.emit('answer', { room: roomName, answer: peerConnection.localDescription });
+                proctoringStatus.innerText = "Live proctoring stream connected.";
+                // Add any queued ICE candidates now that remote description is set
+                while (iceCandidatesQueue.length > 0) {
+                    const candidate = iceCandidatesQueue.shift();
+                    console.log("[Student] Adding queued ICE candidate:", candidate);
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                }
+            } catch (e) {
+                console.error("[Student] Error setting remote description from offer or creating answer:", e);
+            }
+        } else {
+          console.warn("[Student] Received offer but peerConnection is null or closed. Ignoring.");
+        }
+    }
+});
+
+socket.on('ice_candidate', async (data) => {
+    if (data.sender_sid !== socket.id) {
+        console.log("[Student] Received ICE candidate:", data.candidate);
+        if (peerConnection && peerConnection.remoteDescription) {
+            try {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                console.log("[Student] Added ICE candidate.");
+            } catch (e) {
+                console.error("[Student] Error adding received ICE candidate:", e);
+            }
+        } else {
+            // Queue candidates if remote description is not yet set
+            iceCandidatesQueue.push(data.candidate);
+            console.log("[Student] Queued ICE candidate, remote description not yet set.");
+        }
+    }
+});
+
+socket.on('connect', () => {
+  console.log('[Student] Connected to Socket.IO. SID:', socket.id);
+  socket.emit('join', { room: roomName });
+  // Start WebRTC stream setup (get media, add tracks) after socket is connected
+  startWebRTCStream();
+});
+
+socket.on('disconnect', () => {
+  console.log("[Student] Socket disconnected.");
+  if (peerConnection) peerConnection.close();
+  if (localStream) localStream.getTracks().forEach(track => track.stop());
+  peerConnection = null;
+  localStream = null;
+  iceCandidatesQueue = [];
+});
+
+
+window.addEventListener('beforeunload', () => {
+    console.log("[Student] Page unloading. Closing peerConnection and socket.");
+    if (peerConnection) peerConnection.close();
+    if (localStream) localStream.getTracks().forEach(track => track.stop());
+    socket.disconnect();
+});
 </script>
+
 <footer id="sticky-footer" class="py-4">
   <div class="d-flex text-center justify-content-center align-items-center" role="contentinfo">
     <p class="font-weight-bold font-medium mb-0">Copyright © ExamSheild.ai

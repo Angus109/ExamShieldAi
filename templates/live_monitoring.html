@@ -1,39 +1,159 @@
 {% extends 'professor_dashboard.html' %}
 {% block body %}
-<div class="row align-items-center d-flex  justify-content-center">
-    <div class="col-12 mb-4">
-        <div class="card border-light shadow-sm components-section align-items-center d-flex  justify-content-center">
-            <div class="card-body align-items-center d-flex justify-content-center">     
-                <div class="row mb-4">
-                    {% if(testid) %}
-                    <div class="col-lg-12 col-sm-16">
-                      <h3 class="h3 text-center">LIVE MONITORING of EXAM-ID: {{testid}} </h3>  
-                    </div>
-                    <div class="card-body">
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <div class="card enhanced-card">
+                <div class="card-header enhanced-card-header text-center">
+                    <h3 class="h3 card-title text-white mb-0">LIVE MONITORING DASHBOARD</h3>
+                </div>
+                <div class="card-body p-4">
+
+                    <form method="POST" action="{{ url_for('live_monitoring') }}" class="mb-4">
                         <div class="form-group">
-                            <div class="container">
-                              <div class="justify-content-center align-items-center">
-                                <div id="otEmbedContainer"  id ="livecheck" style="width:650px; height:1000px;">
-                                <script src="https://tokbox.com/embed/embed/ot-embed.js?embedId=2020dbd9-0a89-472d-a60b-ca12ddfd48bc&room={{testid}}"></script>
-                              </div>
-                              </div>
-                            </div>
-                    </div>
-                    </div>
-                    {% else %}
-                    <div class="col-lg-12 col-sm-16">
-                        <h3 class="h3 text-center">
-                            No Records Found!
-                            <br>
-                            Or
-                            <br>
-                            Note: Only Live Exam ID's are shown between duration of the Exam.
-                        </h3>  
-                      </div>
-                    {% endif %}
+                            <label for="choosetid" class="form-label">Select Exam ID to Monitor:</label>
+                            <select class="form-control form-control-lg" id="choosetid" name="choosetid" required>
+                                <option value="">-- Select a Test ID --</option>
+                                {% for test in available_test_ids %}
+                                <option value="{{ test['test_id'] }}" {% if testid == test['test_id'] %}selected{% endif %}>
+                                    {{ test['test_id'] }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary-student-theme w-100">Show Live Students</button>
+                    </form>
+
+                    {% if testid and active_students %}
+                    <h4 class="h4 text-center mb-4">Live Students for Exam ID: {{ testid }}</h4>
+                    <div class="row">
+                        {% for student in active_students %}
+                        <div class="col-md-4 mb-4">
+                            <div class="card shadow-sm border-0">
+                                <div class="video-embed-responsive">
+                                    <video id="video_{{ student['uid'] }}" autoplay playsinline muted style="background: black;"></video>
+                                </div>
+                                <div class="card-body text-center">
+                                    <p class="card-text mb-2">{{ student['email'] }}</p>
+                                    <a href="{{ url_for('monitor_student_stream', testid=testid, student_uid=student['uid']) }}" 
+                                       class="btn btn-primary-student-theme btn-sm">
+                                        Monitor Stream
+                                    </a>
+                                </div>
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
+                    <p class="text-center text-muted">All video streams are live. Click 'Monitor Stream' to view each student exclusively.</p>
+
+                    {% elif testid and not active_students %}
+                    <div class="empty-state text-center p-5">
+                        <lottie-player
+                            src="https://assets7.lottiefiles.com/datafiles/vhvOcuUkH41HdrL/data.json"
+                            background="transparent"
+                            speed="1"
+                            style="width: 300px; height: 300px;"
+                            loop autoplay>
+                        </lottie-player>
+                        <h3 class="empty-title">No Live Students Found for Exam ID: {{ testid }}!</h3>
+                        <p class="empty-subtitle">Students must be actively taking the test with live proctoring enabled.</p>
+                    </div>
+
+                    {% else %}
+                    <div class="empty-state text-center p-5">
+                        <lottie-player
+                            src="https://assets7.lottiefiles.com/datafiles/vhvOcuUkH41HdrL/data.json"
+                            background="transparent"
+                            speed="1"
+                            style="width: 300px; height: 300px;"
+                            loop autoplay>
+                        </lottie-player>
+                        <h3 class="empty-title">Select an Exam ID to Monitor</h3>
+                        <p class="empty-subtitle">Choose a test from the dropdown above to see active students.</p>
+                    </div>
+                    {% endif %}
+
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+<script>
+    const testId = "{{ testid }}";
+    const activeStudents = {{ active_students | tojson }};
+    const socket = io();
+    const iceServers = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+
+    const peerConnections = {};
+    const remoteStreams = {};
+
+    activeStudents.forEach(student => {
+        const studentUid = student.uid;
+        const roomName = testId + '-' + studentUid;
+        const videoElement = document.getElementById('video_' + studentUid);
+
+        const pc = new RTCPeerConnection(iceServers);
+        const remoteStream = new MediaStream();
+
+        peerConnections[studentUid] = pc;
+        remoteStreams[studentUid] = remoteStream;
+        videoElement.srcObject = remoteStream;
+
+        pc.onicecandidate = event => {
+            if (event.candidate) {
+                socket.emit('ice_candidate', { room: roomName, candidate: event.candidate });
+            }
+        };
+
+        pc.ontrack = event => {
+            if (!remoteStream.getTracks().includes(event.track)) {
+                remoteStream.addTrack(event.track);
+            }
+        };
+
+        socket.emit('join', { room: roomName });
+
+        socket.on('offer', async (data) => {
+            if (data.room === roomName && data.sender_sid !== socket.id) {
+                await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                socket.emit('answer', { room: roomName, answer: pc.localDescription });
+            }
+        });
+
+        socket.on('ice_candidate', async (data) => {
+            if (data.room === roomName && data.sender_sid !== socket.id) {
+                await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+            }
+        });
+    });
+
+    window.addEventListener('beforeunload', () => {
+        Object.values(peerConnections).forEach(pc => pc.close());
+        socket.disconnect();
+    });
+</script>
+
+<style>
+.video-embed-responsive {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    background: black;
+    border-radius: 12px;
+}
+video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+}
+</style>
+
 {% endblock %}

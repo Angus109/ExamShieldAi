@@ -1,135 +1,243 @@
 {% extends 'professor_dashboard.html' %}
 {% block body %}
-<style>
-    .card-folders .card-body > .breadcrumb {
-	margin-left: -1.25em;
-	margin-right: -1.25em;
-	margin-top: -1.25em;
-	border-radius: 0;
-}
-
-.folder-container {
-	text-align: center;
-	margin-left: 1rem;
-	margin-right: 1rem;
-	margin-bottom: 1.5rem;
-	width: 100px;
-	padding: 0;
-	align-self: start;
-	background: none;
-	border: none;
-	outline-color: transparent !important;
-	cursor: pointer;
-}
-
-.folder-icon {
-	font-size: 3em;
-	line-height: 1.25em;
-}
-
-.folder-icon-color {
-	color: #FFC107;
-	text-shadow: 1px 1px 0px #e0a800;
-}
-
-.folder-name {
-	overflow-wrap: break-word;
-	word-wrap: break-word;
-	hyphens: auto;
-}
-
-.flex-column .folder-container {
-	display: flex;
-	width: auto;
-	min-width: 100px;
-	text-align: left;
-	margin: 0;
-	margin-bottom: 1rem;
-}
-
-.flex-column .folder-icon, .flex-column .folder-name {
-	display: inline-flex;
-}
-
-.flex-column .folder-icon {
-	font-size: 1.4em;
-	margin-right: 1rem;
-}
-
-.file-icon-color {
-	color: #999;
-}
-</style>
-<script>
-$( document ).ready(function() {
-  $('#btn-list').on('click', function() {
-    $('#main-folders').addClass('flex-column');
-    $('#btn-grid').removeClass('active')
-    $(this).addClass('active')
-  });
-  $('#btn-grid').on('click', function() {
-    $('#main-folders').removeClass('flex-column');
-    $('#btn-list').removeClass('active')
-    $(this).addClass('active')
-  });
-  $('#btn-list').on('click', function() {
-    $('#main-files').addClass('flex-column');
-    $('#btn-grid').removeClass('active')
-    $(this).addClass('active')
-  });
-  $('#btn-grid').on('click', function() {
-    $('#main-files').removeClass('flex-column');
-    $('#btn-list').removeClass('active')
-    $(this).addClass('active')
-  });
-});
-</script>
-<div class="container">
-  <div class="card card-folders">
-    {% if callresults is not none %}
-    <div class="card-header">
-      <div class="row align-items-center">
-          <div class="col mr-auto">
-            {% for res in callresults %}
-            <h4 class="card-title m-0">Student Folders of {{res['test_id']}}</h4>
-            {% endfor %}
-          </div>
-          <div class="col col-auto pr-2">
-            <div class="btn-group">
-              <button class="btn btn-sm btn-outline-secondary" id="btn-list"><i class="fa fa-th-list fa-lg"></i></button>
-              <button class="btn btn-sm btn-outline-secondary outline-none active" id="btn-grid"><i class="fa fa-th-large fa-lg"></i></button>
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <div class="card enhanced-card">
+                <div class="card-header enhanced-card-header text-center">
+                    {% if callresults %}
+                    <h3 class="h3 card-title text-white mb-0">Student Folders of {{ callresults[0]['test_id'] }}</h3>
+                    {% else %}
+                    <h3 class="h3 card-title text-white mb-0">Student Folders</h3>
+                    {% endif %}
+                </div>
+                <div class="card-body p-4">
+                    {% if callresults is not none and callresults %}
+                    <div class="d-flex justify-content-end mb-3">
+                        <div class="btn-group view-toggle-buttons" role="group" aria-label="View Toggle">
+                            <button class="btn btn-outline-student-theme active" id="btn-grid" title="Grid View">
+                                <i class="fa fa-th-large fa-lg"></i>
+                            </button>
+                            <button class="btn btn-outline-student-theme" id="btn-list" title="List View">
+                                <i class="fa fa-th-list fa-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="main-folders" class="d-flex align-items-stretch flex-wrap justify-content-center">
+                        {% for res in callresults %}
+                        <div class="folder-wrapper">
+                            <a href="studentmonitoringstats/{{res['test_id']}}/{{res['email']}}" class="folder-container">
+                                <div class="folder-icon">
+                                    <i class="fas fa-folder folder-icon-color"></i>
+                                </div>
+                                <div class="folder-name">{{res['email']}}</div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state text-center p-5">
+                        <lottie-player
+                            src="https://assets7.lottiefiles.com/datafiles/vhvOcuUkH41HdrL/data.json"
+                            background="transparent"
+                            speed="1"
+                            style="width: 300px; height: 300px;"
+                            loop
+                            autoplay>
+                        </lottie-player>
+                        <h3 class="empty-title">No Records Found!</h3>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-          </div>
         </div>
     </div>
-    <div class="card-body" id="foldersGroup">
-      <div id="main-folders" class="d-flex align-items-stretch flex-wrap">
-{% for res in callresults%}
-        <div class="d-inline-flex">
-            <button class="folder-container">
-                <span>
-                <a href="studentmonitoringstats/{{res['test_id']}}/{{res['email']}}">
-              <div class="folder-icon">
-                <i class="fa fa-folder folder-icon-color"></i>
-              </div>
-              <div class="folder-name">{{res['email']}}<br>
-              </div>
-            </a>
-        </span>
-            </button>
-          </div>
-{% endfor %}
-        </div>
-    </div>
-    {% else %}
-    <div class="col-lg-12 col-sm-16">
-      <center><lottie-player src="https://assets7.lottiefiles.com/datafiles/vhvOcuUkH41HdrL/data.json"  background="transparent"  speed="1"  style="width: 300px; height: 300px;"  loop  autoplay></lottie-player></center>
-        <h3 class="h3 text-center">
-            No Records Found!
-        </h3>  
-        <br>
-      </div>
-    {% endif %}
-  </div>
 </div>
+<script>
+    $(document).ready(function() {
+        $('#btn-list').on('click', function() {
+            $('#main-folders').addClass('flex-column');
+            $('.view-toggle-buttons .btn').removeClass('active');
+            $(this).addClass('active');
+        });
+        $('#btn-grid').on('click', function() {
+            $('#main-folders').removeClass('flex-column');
+            $('.view-toggle-buttons .btn').removeClass('active');
+            $(this).addClass('active');
+        });
+    });
+</script>
+<style>
+    /* Student Details Folder View Styles */
+    :root {
+        --student-primary: #17a2b8; /* Info/Cyan */
+        --student-secondary: #007bff; /* Blue */
+        --student-accent: #6f42c1; /* Purple */
+        --student-gradient: linear-gradient(135deg, var(--student-primary) 0%, var(--student-secondary) 50%, var(--student-accent) 100%);
+        --student-gradient-hover: linear-gradient(135deg, #148a9b 0%, #0069d9 50%, #5e37a8 100%);
+        --student-dark: #2c3e50;
+        --student-light: rgba(255, 255, 255, 0.1);
+        --student-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        --student-shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .enhanced-card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: var(--student-shadow);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .enhanced-card-header {
+        background: var(--student-gradient);
+        padding: 1.5rem 2rem;
+        border-bottom: none;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .card-title {
+        font-weight: 700;
+    }
+
+    .view-toggle-buttons .btn {
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: 1px solid var(--student-primary);
+        color: var(--student-primary);
+        background-color: transparent;
+    }
+
+    .view-toggle-buttons .btn:hover {
+        background: var(--student-gradient);
+        color: white;
+        border-color: transparent;
+    }
+
+    .view-toggle-buttons .btn.active {
+        background: var(--student-gradient);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-outline-student-theme {
+        border: 1px solid var(--student-primary);
+        color: var(--student-primary);
+        background-color: transparent;
+    }
+
+    .btn-outline-student-theme:hover,
+    .btn-outline-student-theme.active {
+        background: var(--student-gradient);
+        color: white;
+        border-color: transparent;
+    }
+
+    .folder-wrapper {
+        flex: 0 0 auto; /* Prevent shrinking */
+        width: 120px; /* Fixed width for grid item */
+        margin: 1rem;
+        text-align: center;
+    }
+
+    .folder-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        text-decoration: none;
+        color: var(--student-dark);
+        border-radius: 15px;
+        background: white;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        height: 100%; /* Ensure consistent height */
+    }
+
+    .folder-container:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+        color: var(--student-primary);
+    }
+
+    .folder-icon {
+        font-size: 3.5em;
+        line-height: 1em;
+        margin-bottom: 0.5rem;
+    }
+
+    .folder-icon-color {
+        color: var(--student-primary); /* Use primary theme color */
+        text-shadow: 1px 1px 0px rgba(0, 123, 255, 0.2); /* Subtle shadow */
+    }
+
+    .folder-name {
+        font-weight: 600;
+        font-size: 0.95rem;
+        word-wrap: break-word;
+        hyphens: auto;
+        max-width: 100%; /* Ensure text wraps within container */
+    }
+
+    /* List View */
+    #main-folders.flex-column {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #main-folders.flex-column .folder-wrapper {
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+
+    #main-folders.flex-column .folder-container {
+        flex-direction: row;
+        justify-content: flex-start;
+        padding: 0.75rem 1.5rem;
+        gap: 1rem;
+    }
+
+    #main-folders.flex-column .folder-icon {
+        font-size: 1.8em;
+        margin-bottom: 0;
+    }
+
+    #main-folders.flex-column .folder-name {
+        font-size: 1rem;
+        text-align: left;
+    }
+
+    .empty-state .empty-title {
+        color: var(--student-dark);
+        font-weight: 700;
+        margin-top: 1rem;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .enhanced-card-header {
+            padding: 1rem;
+        }
+        .card-body {
+            padding: 1.5rem !important;
+        }
+        .folder-wrapper {
+            width: calc(50% - 2rem); /* Two columns on smaller screens */
+            margin: 1rem 0.5rem;
+        }
+        #main-folders.flex-column .folder-container {
+            padding: 0.75rem 1rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .folder-wrapper {
+            width: calc(100% - 2rem); /* Single column on extra small screens */
+            margin: 1rem auto;
+        }
+    }
+</style>
 {% endblock %}

@@ -1,0 +1,266 @@
+{% extends 'professor_dashboard.html' %}
+{% block body %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Monitor Student Stream</title>
+  <style>
+:root {
+    --student-primary: #17a2b8;
+    --student-secondary: #007bff;
+    --student-accent: #6f42c1;
+    --student-gradient: linear-gradient(135deg, var(--student-primary) 0%, var(--student-secondary) 50%, var(--student-accent) 100%);
+}
+.enhanced-card {
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+.enhanced-card-header {
+    background: var(--student-gradient);
+    padding: 1.5rem 2rem;
+    border-radius: 20px 20px 0 0;
+    color: white;
+}
+.video-embed-responsive {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    background: black;
+}
+video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    border: none;
+    border-radius: 15px;
+}
+  </style>
+</head>
+<body>
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <div class="card enhanced-card">
+                <div class="enhanced-card-header text-center">
+                    <h3>Monitoring Student: {{ student_uid }} (Exam ID: {{ testid }})</h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center">
+                        <div class="video-embed-responsive">
+                            <video id="remoteVideo" autoplay playsinline muted></video>
+                        </div>
+                        <p id="monitoringStatus" class="text-muted mt-3">Waiting for student stream...</p>
+                        <button id="playButton" class="btn btn-primary mt-2" style="display: none;">Play Stream</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+<script>
+  const testId = "{{ testid }}";
+  const studentUid = "{{ student_uid }}";
+  const roomName = testId + '-' + studentUid;
+
+  const socket = io();
+  const remoteVideo = document.getElementById('remoteVideo');
+  const monitoringStatus = document.getElementById('monitoringStatus');
+  const playButton = document.getElementById('playButton');
+
+  const iceServers = {
+    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+  };
+
+  let peerConnection = null;
+  const remoteStream = new MediaStream();
+  let iceCandidatesQueue = []; // Queue for ICE candidates
+
+  function initializePeerConnection() {
+    console.log("[Professor] Initializing RTCPeerConnection...");
+    if (peerConnection && peerConnection.signalingState !== 'closed') {
+      console.log("[Professor] Existing peerConnection is not closed, closing it.");
+      peerConnection.close();
+    }
+    peerConnection = new RTCPeerConnection(iceServers);
+    iceCandidatesQueue = []; // Clear queue on new connection
+
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        console.log("[Professor] Sending ICE candidate:", event.candidate);
+        socket.emit('ice_candidate', { room: roomName, candidate: event.candidate });
+      } else {
+        console.log("[Professor] ICE gathering complete.");
+      }
+    };
+
+    // Inside the `initializePeerConnection` function, within `peerConnection.ontrack`:
+
+    // The `ontrack` event fires when a new track is added to the RTCPeerConnection.
+    // This is where the remote video stream is received.
+    peerConnection.ontrack = (event) => {
+      console.log("[Professor] Received remote track:", event.track);
+      // Check if the track is already in the remoteStream to avoid duplicates
+      if (!remoteStream.getTracks().includes(event.track)) {
+        remoteStream.addTrack(event.track); // Add the new track to the remoteStream
+        console.log("[Professor] Added track to remoteStream. Current tracks:", remoteStream.getTracks().length);
+      }
+
+      // Assign the remoteStream to the video element's srcObject
+      // This is done only if it's not already assigned to prevent unnecessary re-assignments
+      if (remoteVideo.srcObject !== remoteStream) {
+        remoteVideo.srcObject = remoteStream;
+        console.log("[Professor] Assigned remoteStream to video element.");
+      }
+
+      // Attempt to play the video once its metadata is loaded
+      remoteVideo.onloadedmetadata = () => {
+        console.log("[Professor] Remote video metadata loaded. Attempting to play.");
+        remoteVideo.play().catch(e => {
+          console.error("[Professor] Autoplay failed:", e);
+          // If autoplay fails, show a play button for user interaction
+          playButton.style.display = 'block';
+          monitoringStatus.innerText = 'Click Play to start stream.';
+        });
+      };
+    };
+
+    peerConnection.oniceconnectionstatechange = () => {
+      console.log(`[Professor] ICE connection state changed: ${peerConnection.iceConnectionState}`);
+      monitoringStatus.innerText = `ICE state: ${peerConnection.iceConnectionState}`;
+    };
+
+    // Add peerConnection.onconnectionstatechange for more detailed logging
+    peerConnection.onconnectionstatechange = () => {
+      console.log(`[Professor] Peer connection state changed: ${peerConnection.connectionState}`);
+      monitoringStatus.innerText = `Connection state: ${peerConnection.connectionState}`;
+    };
+
+    peerConnection.onsignalingstatechange = () => {
+      console.log(`[Professor] Signaling state changed: ${peerConnection.signalingState}`);
+    };
+  }
+
+  async function createAndSendOffer() {
+    // Only initialize peerConnection if it doesn't exist or is closed
+    if (!peerConnection || peerConnection.signalingState === 'closed') {
+      console.log("[Professor] PeerConnection not initialized or closed. Initializing now.");
+      initializePeerConnection();
+    } else if (peerConnection.connectionState === 'connected' || peerConnection.connectionState === 'completed') {
+      console.log("[Professor] Peer connection already established. Not creating new offer.");
+      return;
+    } else if (peerConnection.signalingState === 'have-local-offer' || peerConnection.signalingState === 'have-remote-pranswer') {
+      console.log("[Professor] Signaling in progress. Not creating new offer.");
+      return;
+    }
+
+    try {
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+      console.log("[Professor] Created and set local offer:", peerConnection.localDescription);
+      socket.emit('offer', { room: roomName, offer: peerConnection.localDescription });
+      monitoringStatus.innerText = "Offer sent. Waiting for student to respond...";
+    } catch (error) {
+      console.error("[Professor] Error creating and sending offer:", error);
+      monitoringStatus.innerText = "Error starting monitoring.";
+    }
+  }
+
+  socket.on('connect', () => {
+    console.log('[Professor] Connected to Socket.IO. SID:', socket.id);
+    socket.emit('join', { room: roomName });
+    // Immediately attempt to create and send an offer upon connecting and joining the room
+    // This handles the case where the student is already present and has emitted 'ready'.
+    createAndSendOffer();
+  });
+
+  socket.on('ready', (data) => {
+    // This 'ready' event means another peer (student) has joined the room.
+    // If it's not our own SID, and we haven't started the connection yet, initiate.
+    // This handles the case where the student joins *after* the professor.
+    if (data.sid !== socket.id) {
+      console.log("[Professor] Student is ready (SID:", data.sid, "). Attempting to initiate offer.");
+      // This will call createAndSendOffer, which will check the state of peerConnection
+      // and only create a new offer if necessary (e.g., if one wasn't sent on connect).
+      createAndSendOffer();
+    }
+  });
+
+  socket.on('answer', async (data) => {
+    if (data.sender_sid !== socket.id) {
+      console.log("[Professor] Received answer:", data.answer);
+      if (peerConnection && peerConnection.signalingState !== 'closed') {
+        try {
+          await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+          console.log("[Professor] Remote description set from answer.");
+          monitoringStatus.innerText = "Receiving stream...";
+          // Add any queued ICE candidates now that remote description is set
+          while (iceCandidatesQueue.length > 0) {
+            const candidate = iceCandidatesQueue.shift();
+            console.log("[Professor] Adding queued ICE candidate:", candidate);
+            await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+          }
+        } catch (e) {
+          console.error("[Professor] Error setting remote description from answer:", e);
+        }
+      } else {
+        console.warn("[Professor] Received answer but peerConnection is null or closed. Ignoring.");
+      }
+    }
+  });
+
+  socket.on('ice_candidate', async (data) => {
+    if (data.sender_sid !== socket.id) {
+      console.log("[Professor] Received ICE candidate:", data.candidate);
+      if (peerConnection && peerConnection.remoteDescription) {
+        try {
+          await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+          console.log("[Professor] Added ICE candidate.");
+        } catch (e) {
+          console.error("[Professor] Error adding received ICE candidate:", e);
+        }
+      } else {
+        // Queue candidates if remote description is not yet set
+        iceCandidatesQueue.push(data.candidate);
+        console.log("[Professor] Queued ICE candidate, remote description not yet set.");
+      }
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log("[Professor] Socket disconnected.");
+    monitoringStatus.innerText = "Stream disconnected.";
+    if (remoteStream) remoteStream.getTracks().forEach(track => track.stop());
+    remoteVideo.srcObject = null;
+    if (peerConnection) {
+      peerConnection.close();
+      peerConnection = null; // Reset peerConnection
+    }
+    iceCandidatesQueue = []; // Clear queue
+  });
+
+  window.addEventListener('beforeunload', () => {
+    console.log("[Professor] Page unloading. Closing peerConnection and socket.");
+    if (peerConnection) {
+      peerConnection.close();
+    }
+    socket.disconnect();
+  });
+
+  playButton.addEventListener('click', () => {
+    console.log("[Professor] Play button clicked.");
+    remoteVideo.play();
+    playButton.style.display = 'none';
+    monitoringStatus.innerText = "Stream playing.";
+  });
+</script>
+
+</body>
+</html>
+{% endblock %}

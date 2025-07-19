@@ -9,8 +9,9 @@
         <div class="row justify-content-center">
           <div class="col-lg-10 col-md-12">
             <h3 class="h3 text-center mb-4">EXAM LOGIN</h3>
-            <p class="text-center text-muted mb-4">Please enter your exam credentials and capture your photo for verification</p>
-            
+            <p class="text-center text-muted mb-4">Please enter your exam credentials and capture your photo for
+              verification</p>
+
             <form action="" method="POST" class="mt-4">
               <div class="row">
                 <!-- Left Column: Form Fields -->
@@ -18,9 +19,10 @@
                   <div class="form-group mb-4">
                     <label class="form-label font-weight-bold">Test ID</label>
                     {{render_field(form.test_id, class="form-control form-control-lg")}}
-                    <small class="form-text text-muted">Enter the unique test identifier provided by your instructor</small>
+                    <small class="form-text text-muted">Enter the unique test identifier provided by your
+                      instructor</small>
                   </div>
-                  
+
                   <div class="form-group mb-4">
                     <label class="form-label font-weight-bold">Password</label>
                     {{render_field(form.password, class="form-control form-control-lg")}}
@@ -43,13 +45,14 @@
                 <div class="col-lg-6 col-md-12 mb-4">
                   <div class="text-center">
                     <label class="form-label font-weight-bold mb-3 d-block">Identity Verification</label>
-                    
+
                     <!-- Video Container with Face Frame Overlay -->
                     <div class="video-container position-relative d-inline-block">
-                      <video id="stream" width="370" height="320" class="rounded border" style="background-color: #f8f9fa;">
+                      <video id="stream" width="370" height="320" class="rounded border"
+                        style="background-color: #f8f9fa;">
                         <canvas id="capture" width="370" height="320" style="display: none;"></canvas>
                       </video>
-                      
+
                       <!-- Face Frame Overlay -->
                       <div class="face-frame-overlay">
                         <div class="face-frame">
@@ -61,13 +64,13 @@
                         </div>
                       </div>
                     </div>
-                    
+
                     <div class="mt-3">
-                      <button id="btn-capture" type="button" class="btn btn-primary btn-lg px-4">
+                      <button id="btn-capture" type="button" class="btn btn-camera btn-lg px-4">
                         <i class="fas fa-camera me-2"></i>Capture Image
                       </button>
                     </div>
-                    
+
                     <!-- Snapshot Preview -->
                     <div id="snapshot" class="mt-3"></div>
                     {{render_field(form.img_hidden_form, id="img_hidden", style="display: none;")}}
@@ -79,7 +82,7 @@
               <div class="row">
                 <div class="col-12 text-center">
                   <hr class="my-4">
-                  <input type="submit" class="btn btn-success btn-lg px-5" value="Login For Exam" id="login-btn"/>
+                  <input type="submit" class="btn btn-primary btn-lg px-5" value="start Exam" id="login-btn" />
                   <p class="text-muted mt-2 small">By proceeding, you agree to the exam terms and conditions</p>
                 </div>
               </div>
@@ -93,201 +96,243 @@
 
 <!-- Custom CSS for Face Frame -->
 <style>
-.video-container {
-  position: relative;
-  display: inline-block;
-}
+  .video-container {
+    position: relative;
+    display: inline-block;
+  }
 
-.face-frame-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 10;
-}
+  .face-frame-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+  }
 
-.face-frame {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 200px;
-  height: 250px;
-  border: 3px solid rgba(0, 123, 255, 0.8);
-  border-radius: 50%;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
-}
-
-.face-frame-corner {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  border: 3px solid #007bff;
-}
-
-.face-frame-corner.top-left {
-  top: -10px;
-  left: -10px;
-  border-right: none;
-  border-bottom: none;
-  border-radius: 10px 0 0 0;
-}
-
-.face-frame-corner.top-right {
-  top: -10px;
-  right: -10px;
-  border-left: none;
-  border-bottom: none;
-  border-radius: 0 10px 0 0;
-}
-
-.face-frame-corner.bottom-left {
-  bottom: -10px;
-  left: -10px;
-  border-right: none;
-  border-top: none;
-  border-radius: 0 0 0 10px;
-}
-
-.face-frame-corner.bottom-right {
-  bottom: -10px;
-  right: -10px;
-  border-left: none;
-  border-top: none;
-  border-radius: 0 0 10px 0;
-}
-
-.face-frame-text {
-  position: absolute;
-  bottom: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #007bff;
-  font-size: 14px;
-  font-weight: bold;
-  text-align: center;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 5px 10px;
-  border-radius: 15px;
-  white-space: nowrap;
-}
-
-#snapshot img {
-  border-radius: 8px;
-  border: 2px solid #28a745;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.alert-info {
-  border-left: 4px solid #007bff;
-}
-
-@media (max-width: 768px) {
   .face-frame {
-    width: 150px;
-    height: 200px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 250px;
+    border: 3px solid #667eea;
+    border-radius: 50%;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
   }
-  
-  video {
-    width: 300px !important;
-    height: 250px !important;
+
+  .face-frame-corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #667eea;
   }
-}
+
+  .face-frame-corner.top-left {
+    top: -10px;
+    left: -10px;
+    border-right: none;
+    border-bottom: none;
+    border-radius: 10px 0 0 0;
+  }
+
+  .face-frame-corner.top-right {
+    top: -10px;
+    right: -10px;
+    border-left: none;
+    border-bottom: none;
+    border-radius: 0 10px 0 0;
+  }
+
+  .face-frame-corner.bottom-left {
+    bottom: -10px;
+    left: -10px;
+    border-right: none;
+    border-top: none;
+    border-radius: 0 0 0 10px;
+  }
+
+  .face-frame-corner.bottom-right {
+    bottom: -10px;
+    right: -10px;
+    border-left: none;
+    border-top: none;
+    border-radius: 0 0 10px 0;
+  }
+
+  .face-frame-text {
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #007bff;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 5px 10px;
+    border-radius: 15px;
+    white-space: nowrap;
+  }
+
+  #snapshot img {
+    border-radius: 8px;
+    border: 2px solid #667eea;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  }
+
+  .alert-info {
+    border-left: 4px solid #007bff;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  }
+
+  .btn-outline-secondary:hover {
+    transform: translateY(-2px);
+  }
+
+
+
+  .btn-camera {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border: none;
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 50px;
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-camera:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    color: white;
+  }
+
+  .btn-camera:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  @media (max-width: 768px) {
+    .face-frame {
+      width: 150px;
+      height: 200px;
+    }
+
+    video {
+      width: 300px !important;
+      height: 250px !important;
+    }
+  }
 </style>
 
 <script>
-var btnCapture = document.getElementById("btn-capture");
-var stream = document.getElementById("stream");
-var capture = document.getElementById("capture");
-var snapshot = document.getElementById("snapshot");
-var loginBtn = document.getElementById("login-btn");
-var cameraStream = null;
-var imageCaptured = false;
+  var btnCapture = document.getElementById("btn-capture");
+  var stream = document.getElementById("stream");
+  var capture = document.getElementById("capture");
+  var snapshot = document.getElementById("snapshot");
+  var loginBtn = document.getElementById("login-btn");
+  var cameraStream = null;
+  var imageCaptured = false;
 
-btnCapture.addEventListener("click", captureSnapshot);
+  btnCapture.addEventListener("click", captureSnapshot);
 
-function startStreaming() {
-  var mediaSupport = 'mediaDevices' in navigator;
-  if (mediaSupport && null == cameraStream) {
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(function(mediaStream) {
-        cameraStream = mediaStream;
-        stream.srcObject = mediaStream;
-        stream.play();
-        
-        // Update button text when camera starts
-        btnCapture.innerHTML = '<i class="fas fa-camera me-2"></i>Capture Image';
-        btnCapture.disabled = false;
-      })
-      .catch(function(err) {
-        console.log("Unable to access camera: " + err);
-        btnCapture.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Camera Error';
-        btnCapture.disabled = true;
-        alert('Camera access denied. Please allow camera access and refresh the page.');
-      });
-  } else {
-    alert('Your browser does not support media devices.');
-    return;
-  }
-}
+  function startStreaming() {
+    var mediaSupport = 'mediaDevices' in navigator;
+    if (mediaSupport && null == cameraStream) {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function (mediaStream) {
+          cameraStream = mediaStream;
+          stream.srcObject = mediaStream;
+          stream.play();
 
-function captureSnapshot() {
-  if (null != cameraStream) {
-    var ctx = capture.getContext('2d');
-    var img = new Image();
-    ctx.drawImage(stream, 0, 0, capture.width, capture.height);
-    
-    img.src = capture.toDataURL("image/png");
-    img.width = 370;
-    img.height = 320;
-    img.className = "img-fluid";
-    
-    snapshot.innerHTML = '';
-    snapshot.appendChild(img);
-    
-    var d1 = capture.toDataURL("image/png");
-    var res = d1.replace("data:image/png;base64,", "");
-    $("#img_hidden").val(res);
-    
-    // Update UI after capture
-    btnCapture.innerHTML = '<i class="fas fa-check me-2"></i>Image Captured';
-    btnCapture.className = "btn btn-success btn-lg px-4";
-    imageCaptured = true;
-    
-    // Add a small success message
-    var successMsg = document.createElement('p');
-    successMsg.className = 'text-success mt-2 mb-0';
-    successMsg.innerHTML = '<i class="fas fa-check-circle me-1"></i>Photo captured successfully!';
-    snapshot.appendChild(successMsg);
-  }
-}
-
-// Form validation
-document.querySelector('form').addEventListener('submit', function(e) {
-  if (!imageCaptured) {
-    e.preventDefault();
-    alert('Please capture your photo before proceeding with the exam.');
-    return false;
-  }
-});
-
-window.onload = function() {
-  startStreaming();
-  
-  // Disable login button initially
-  loginBtn.disabled = true;
-  loginBtn.innerHTML = 'Capture Photo First';
-  
-  // Enable login button after image capture
-  var checkImage = setInterval(function() {
-    if (imageCaptured) {
-      loginBtn.disabled = false;
-      loginBtn.innerHTML = 'Login For Exam';
-      clearInterval(checkImage);
+          // Update button text when camera starts
+          btnCapture.innerHTML = '<i class="fas fa-camera me-2"></i>Capture Image';
+          btnCapture.disabled = false;
+        })
+        .catch(function (err) {
+          console.log("Unable to access camera: " + err);
+          btnCapture.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Camera Error';
+          btnCapture.disabled = true;
+          alert('Camera access denied. Please allow camera access and refresh the page.');
+        });
+    } else {
+      alert('Your browser does not support media devices.');
+      return;
     }
-  }, 500);
-};
+  }
+
+  function captureSnapshot() {
+    if (null != cameraStream) {
+      var ctx = capture.getContext('2d');
+      var img = new Image();
+      ctx.drawImage(stream, 0, 0, capture.width, capture.height);
+
+      img.src = capture.toDataURL("image/png");
+      img.width = 370;
+      img.height = 320;
+      img.className = "img-fluid";
+
+      snapshot.innerHTML = '';
+      snapshot.appendChild(img);
+
+      var d1 = capture.toDataURL("image/png");
+      var res = d1.replace("data:image/png;base64,", "");
+      $("#img_hidden").val(res);
+
+      // Update UI after capture
+      btnCapture.innerHTML = '<i class="fas fa-check me-2"></i>Image Captured';
+      btnCapture.className = "btn btn-camera btn-lg px-4";
+      imageCaptured = true;
+
+      // Add a small success message
+      var successMsg = document.createElement('p');
+      successMsg.className = 'text-purple mt-2 mb-0';
+      successMsg.innerHTML = '<i class="fas fa-check-circle me-1"></i>Photo captured successfully!';
+      snapshot.appendChild(successMsg);
+    }
+  }
+
+  // Form validation
+  document.querySelector('form').addEventListener('submit', function (e) {
+    if (!imageCaptured) {
+      e.preventDefault();
+      alert('Please capture your photo before proceeding with the exam.');
+      return false;
+    }
+  });
+
+  window.onload = function () {
+    startStreaming();
+
+    // Disable login button initially
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = 'Capture Photo First';
+
+    // Enable login button after image capture
+    var checkImage = setInterval(function () {
+      if (imageCaptured) {
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = 'Login For Exam';
+        clearInterval(checkImage);
+      }
+    }, 500);
+  };
 </script>
 {% endblock %}

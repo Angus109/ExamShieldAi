@@ -1,39 +1,182 @@
 {% extends 'student_dashboard.html' %}
 {% block body %}
-<div class="row align-items-center d-flex  justify-content-center">
-    <div class="col-12 mb-4">
-        <div class="card border-light shadow-sm components-section align-items-center d-flex  justify-content-center">
-            <div class="card-body align-items-center d-flex justify-content-center">     
-                <div class="row mb-4">
+<div class="container-fluid py-4">
+    <div class="row align-items-center d-flex justify-content-center">
+        <div class="col-12 mb-4">
+            <div class="card enhanced-card">
+                <div class="card-header enhanced-card-header text-center">
+                    <h3 class="h3 card-title text-white mb-0">SELECT EXAM-ID TO VIEW YOUR RESULTS</h3>
+                </div>
+                <div class="card-body p-4">
                     {% if(cresults is not none and cresults) %}
-                    <div class="col-lg-12 col-sm-16">
-                      <h3 class="h3 text-center">SELECT EXAM-ID TO VIEW YOUR RESULTS</h3>  
-                    </div>
-                    <div class="card-body">
-							    <form action="" method="POST" class="mt-4">
-                                    <div class="form-group text-center">
-                                        <div class="form-group">
-                                            <label class="my-1 mr-2">Choose Exam ID:</label>
-                                            <select class="custom-select my-1 mr-sm-2" name="choosetid" required>
-                                                {% for test in cresults %}
-                                                <option value={{test['test_id']}}>{{test['test_id']}}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
-                                    <input type="submit" class="btn btn-block btn-primary" value="SHOW RESULT"/>
-                                </form>
-                    </div>
-                    {% else %}
-                    <div class="col-lg-12 col-sm-16">
-                        <center><lottie-player src="https://assets7.lottiefiles.com/datafiles/vhvOcuUkH41HdrL/data.json"  background="transparent"  speed="1"  style="width: 300px; height: 300px;"  loop  autoplay></lottie-player></center>
-                        <h3 class="h3 text-center">
-                            No Records Found!
-                        </h3>  
-                      </div>
-                    {% endif %}
+                    <form action="" method="POST" class="mt-4">
+                        <div class="form-group mb-4 text-center">
+                            <label class="form-label" for="choosetid">Choose Exam ID:</label>
+                            <div class="select-container">
+                                <select class="form-select form-select-lg" id="choosetid" name="choosetid" required>
+                                    {% for test in cresults %}
+                                    <option value="{{test['test_id']}}">{{test['test_id']}}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
+                        <input type="submit" class="btn btn-block btn-primary-student-theme" value="SHOW RESULT"/>
+                    </form>
+                    {% else %}
+                    <div class="empty-state text-center p-5">
+                        <lottie-player
+                            src="https://assets7.lottiefiles.com/datafiles/vhvOcuUkH41HdrL/data.json"
+                            background="transparent"
+                            speed="1"
+                            style="width: 300px; height: 300px;"
+                            loop
+                            autoplay>
+                        </lottie-player>
+                        <h3 class="empty-title">No Records Found!</h3>
                     </div>
+                    {% endif %}
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+<style>
+    /* Common styles for enhanced forms and tables */
+    :root {
+        --student-primary: #6f42c1; /* Info/Cyan */
+        --student-secondary: #6f42c1; /* Blue */
+        --student-accent: #6f42c1; /* Purple */
+        --student-gradient: linear-gradient(135deg, var(--student-primary) 0%, var(--student-secondary) 50%, var(--student-accent) 100%);
+        --student-gradient-hover: linear-gradient(135deg, #148a9b 0%, #0069d9 50%, #5e37a8 100%);
+        --student-dark: #2c3e50;
+        --student-light: rgba(255, 255, 255, 0.1);
+        --student-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        --student-shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .enhanced-card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: var(--student-shadow);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .enhanced-card-header {
+        background: var(--student-gradient);
+        padding: 1.5rem 2rem;
+        border-bottom: none;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .card-title {
+        font-weight: 700;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--student-dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control-lg {
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+    .form-control-lg:focus {
+        border-color: var(--student-primary);
+        box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+    }
+
+    .input-group-merge .input-group-text {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-right: none;
+        border-radius: 12px 0 0 12px;
+        color: #6c757d;
+    }
+
+    .input-group-merge .form-control {
+        border-left: none;
+        border-radius: 0 12px 12px 0;
+    }
+
+    textarea.form-control {
+        resize: vertical; /* Allow vertical resizing */
+        min-height: 80px; /* Minimum height for textareas */
+    }
+
+    .btn-primary-student-theme {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        color: white;
+    }
+
+    .btn-primary-student-theme:hover {
+        opacity: 0.8;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(23, 162, 184, 0.4);
+        color: white; /* Ensure text color remains white on hover */
+    }
+
+    .btn-primary-student-theme:focus {
+        box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+    }
+
+    .select-container {
+        position: relative;
+    }
+
+    .select-container::after {
+        content: '\f078'; /* FontAwesome chevron-down icon */
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: #6c757d;
+    }
+
+    .form-select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: none;
+        padding-right: 2.5rem; /* Make space for the custom arrow */
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+    .form-select:focus {
+        border-color: var(--student-primary);
+        box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+    }
+
+    .empty-state .empty-title {
+        color: var(--student-dark);
+        font-weight: 700;
+        margin-top: 1rem;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .enhanced-card-header {
+            padding: 1rem;
+        }
+        .card-body {
+            padding: 1.5rem !important;
+        }
+    }
+</style>
 {% endblock %}

@@ -19,5 +19,6 @@ static/volt/
 .vscode
 venv
 SCREENSHOTS
-save_model.pb
+saved_model.pb
 _pycache_
+.env

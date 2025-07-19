@@ -1,41 +1,146 @@
 {% extends 'professor_dashboard.html' %}
 {% block body %}
-<div class="row align-items-center d-flex  justify-content-center">
-    <div class="col-12 mb-4">
-        <div class="card border-light shadow-sm components-section align-items-center d-flex  justify-content-center">
-            <div class="card-body align-items-center d-flex justify-content-center">     
-                <div class="row mb-4">
-                    <div class="col-lg-12 col-sm-16">
-							<h3 class="h3 text-center">UPDATE QUESTIONS</h3>  
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card enhanced-card">
+                <div class="card-header enhanced-card-header text-center">
+                    <h3 class="h3 card-title text-white mb-0">UPDATE PRACTICAL QUESTIONS</h3>
+                </div>
+                <div class="card-body p-4">
+                    {% for uresults in uresults %}
+                    <form action="" method="POST" class="mt-4">
+                        <div class="form-group mb-4">
+                            <label for="question-{{uresults['qid']}}" class="form-label">Question {{uresults['qid']}} of {{uresults['test_id']}}</label>
+                            <div class="input-group input-group-merge">
+                                <span class="input-group-text"><i class="fas fa-question-circle"></i></span>
+                                <textarea name="ques" id="question-{{uresults['qid']}}" class="form-control form-control-lg" placeholder="QUESTION:" rows="4">{{uresults['q']}}</textarea>
                             </div>
-                            <div class="card-body">
-							    <form action="" method="POST" class="mt-4">
-                                    {% for uresults in uresults %}
-                                    <div class="form-group">
-                                        <label for="exampleInputIcon3">Question {{uresults['qid']}} of {{uresults['test_id']}}</label>
-                                        <div class="input-group mb-4">
-                                            <div class="input-group-prepend">
-                                                <span class="input-group-text">Question</span>
-                                            </div>
-                                            <input name="ques" value="{{uresults['q']}}" class="form-control" placeholder="QUESTION:" type="text" >
-                                        </div>
-                                    </div>
-                                <div class="form-group">
-                                    <label for="exampleInputIcon3">MARKS</label>
-                                    <div class="input-group mb-4">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">Marks</span>
-                                        </div>
-                                        <input name="mko" value="{{uresults['marks']}}" type="number" class="form-control" placeholder="MARKS:"/>
-                                    </div>
-                                </div> 
-  <input type="submit" class="btn btn-primary" value="UPDATE!">
-    </form>
-    {% endfor %}
-  </div>
-                    </div>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="marks-{{uresults['qid']}}" class="form-label">MARKS</label>
+                            <div class="input-group input-group-merge">
+                                <span class="input-group-text"><i class="fas fa-star"></i></span>
+                                <input name="mko" value="{{uresults['marks']}}" type="number" id="marks-{{uresults['qid']}}" class="form-control form-control-lg" placeholder="MARKS:"/>
+                            </div>
+                        </div> 
+                        <div class="d-grid">
+                            <input type="submit" class="btn btn-primary-student-theme btn-lg" value="UPDATE!">
+                        </div>
+                    </form>
+                    {% endfor %}
                 </div>
             </div>
         </div>
-       </div>
+    </div>
+</div>
+
+<style>
+/* Common styles for enhanced forms and tables */
+:root {
+    --student-primary: #17a2b8; /* Info/Cyan */
+    --student-secondary: #007bff; /* Blue */
+    --student-accent: #6f42c1; /* Purple */
+    --student-gradient: linear-gradient(135deg, var(--student-primary) 0%, var(--student-secondary) 50%, var(--student-accent) 100%);
+    --student-gradient-hover: linear-gradient(135deg, #148a9b 0%, #0069d9 50%, #5e37a8 100%);
+    --student-dark: #2c3e50;
+    --student-light: rgba(255, 255, 255, 0.1);
+    --student-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    --student-shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.enhanced-card {
+    border: none;
+    border-radius: 20px;
+    box-shadow: var(--student-shadow);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.enhanced-card-header {
+    background: var(--student-gradient);
+    padding: 1.5rem 2rem;
+    border-bottom: none;
+    border-radius: 20px 20px 0 0;
+}
+
+.card-title {
+    font-weight: 700;
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--student-dark);
+    margin-bottom: 0.5rem;
+}
+
+.form-control-lg {
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-control-lg:focus {
+    border-color: var(--student-primary);
+    box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+}
+
+.input-group-merge .input-group-text {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-right: none;
+    border-radius: 12px 0 0 12px;
+    color: #6c757d;
+}
+
+.input-group-merge .form-control {
+    border-left: none;
+    border-radius: 0 12px 12px 0;
+}
+
+textarea.form-control {
+    resize: vertical; /* Allow vertical resizing */
+    min-height: 80px; /* Minimum height for textareas */
+}
+
+.btn-primary-student-theme {
+    background: linear-gradient(135deg, var(--student-primary), var(--student-secondary));
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.btn-primary-student-theme:hover {
+    background: var(--student-gradient-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(23, 162, 184, 0.4);
+    color: white; /* Ensure text color remains white on hover */
+}
+
+.btn-primary-student-theme:focus {
+    box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .enhanced-card-header {
+        padding: 1rem;
+    }
+    .card-body {
+        padding: 1.5rem !important;
+    }
+    .form-control-lg, .input-group-text {
+        font-size: 0.9rem;
+        padding: 0.6rem 0.8rem;
+    }
+    .btn-lg {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+    }
+}
+</style>
 {% endblock %}

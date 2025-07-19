@@ -1,12 +1,11 @@
 {% extends 'professor_dashboard.html' %}
 {% block body %}
-
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-8 col-md-10">
-            <div class="card border-0 shadow-lg">
+            <div class="card border-0 shadow-lg enhanced-card">
                 <div class="card-body p-4 p-lg-5">
-                    {% if(cresults is not none and cresults) %}
+                    {% if cresults is not none and cresults %}
                     <!-- Header -->
                     <div class="text-center mb-4">
                         <div class="page-icon live-monitoring">
@@ -15,17 +14,16 @@
                         <h3 class="page-title">VIEW LIVE OF STUDENTS</h3>
                         <p class="page-subtitle">Monitor students in real-time during active examinations</p>
                     </div>
-
                     <!-- Form Section -->
                     <div class="form-container">
-                        <form action="/live_monitoring" method="POST" class="monitoring-form">
+                        <form action="{{ url_for('live_monitoring') }}" method="POST" class="monitoring-form">
                             <div class="form-group mb-4">
                                 <label class="form-label" for="livebox">Choose Exam ID:</label>
                                 <div class="select-wrapper">
                                     <select class="form-select form-select-lg" id="livebox" name="choosetid" required>
                                         <option value="" disabled selected>Select an active exam</option>
-                                        {% for test in cresults %}
-                                        <option value="{{test}}">Exam ID: {{test}}</option>
+                                        {% for test_id in cresults %}
+                                        <option value="{{ test_id }}">Exam ID: {{ test_id }}</option>
                                         {% endfor %}
                                     </select>
                                     <div class="select-icon">
@@ -33,23 +31,20 @@
                                     </div>
                                 </div>
                             </div>
-                            
                             <div class="text-center">
-                                <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <button type="submit" class="btn btn-primary-student-theme btn-lg px-5">
                                     <i class="fas fa-eye me-2"></i>VIEW LIVE MONITORING OF EXAM
                                 </button>
                             </div>
                         </form>
                     </div>
-
                     <!-- Live Status Indicator -->
                     <div class="live-status mt-4">
                         <div class="status-indicator">
                             <div class="live-dot"></div>
-                            <span>{{cresults|length}} Active Exam(s)</span>
+                            <span>{{ cresults|length }} Active Exam(s)</span>
                         </div>
                     </div>
-
                     {% else %}
                     <!-- No Active Exams -->
                     <div class="text-center">
@@ -68,9 +63,19 @@
         </div>
     </div>
 </div>
-
 <style>
 /* Live Monitoring Styles */
+:root {
+    --student-primary: #17a2b8; /* Info/Cyan */
+    --student-secondary: #007bff; /* Blue */
+    --student-accent: #6f42c1; /* Purple */
+    --student-gradient: linear-gradient(135deg, var(--student-primary) 0%, var(--student-secondary) 50%, var(--student-accent) 100%);
+    --student-gradient-hover: linear-gradient(135deg, #148a9b 0%, #0069d9 50%, #5e37a8 100%);
+    --student-dark: #2c3e50;
+    --student-light: rgba(255, 255, 255, 0.1);
+    --student-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    --student-shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
 .page-icon {
     width: 80px;
     height: 80px;
@@ -82,63 +87,56 @@
     color: white;
     font-size: 2rem;
 }
-
 .page-icon.live-monitoring {
-    background: linear-gradient(135deg, #28a745, #20c997);
+    background: linear-gradient(135deg, #28a745, #20c997); /* Green gradient for live */
 }
-
 .page-icon.no-data {
-    background: linear-gradient(135deg, #6c757d, #495057);
+    background: linear-gradient(135deg, #6c757d, #495057); /* Grey gradient for no data */
 }
-
 .page-title {
-    color: #2c3e50;
+    color: var(--student-dark);
     font-weight: 700;
     margin-bottom: 0.5rem;
 }
-
 .page-subtitle {
     color: #6c757d;
     font-size: 1.1rem;
     margin-bottom: 0;
 }
-
-.card {
+.enhanced-card { /* Added this class for consistency */
+    border: none;
     border-radius: 20px;
+    box-shadow: var(--student-shadow);
+    overflow: hidden;
+    margin-bottom: 2rem;
 }
-
 .form-container {
     background: #f8f9fa;
     padding: 2rem;
     border-radius: 15px;
     border: 1px solid #e9ecef;
 }
-
 .form-label {
     font-weight: 600;
-    color: #2c3e50;
+    color: var(--student-dark);
     margin-bottom: 0.75rem;
     display: block;
 }
-
 .select-wrapper {
     position: relative;
 }
-
 .form-select {
     border-radius: 12px;
     border: 2px solid #e9ecef;
     padding: 1rem 3rem 1rem 1rem;
     background: white;
     transition: all 0.3s ease;
-    appearance: none;
+    appearance: none; /* Hide default arrow */
 }
-
 .form-select:focus {
-    border-color: #28a745;
-    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    border-color: var(--student-primary); /* Use student primary color */
+    box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25); /* Use student primary color */
 }
-
 .select-icon {
     position: absolute;
     right: 1rem;
@@ -147,45 +145,42 @@
     color: #6c757d;
     pointer-events: none;
 }
-
-.btn-primary {
-    background: linear-gradient(135deg, #28a745, #20c997);
+.btn-primary-student-theme { /* Changed to use student theme button style */
+    background: linear-gradient(135deg, var(--student-primary), var(--student-secondary));
     border: none;
     border-radius: 25px;
     font-weight: 600;
     transition: all 0.3s ease;
+    color: white;
 }
-
-.btn-primary:hover {
+.btn-primary-student-theme:hover {
+    background: var(--student-gradient-hover);
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+    box-shadow: 0 8px 25px rgba(23, 162, 184, 0.4);
+    color: white;
 }
-
 .live-status {
     text-align: center;
     padding: 1rem;
-    background: rgba(40, 167, 69, 0.1);
+    background: rgba(40, 167, 69, 0.1); /* Greenish background */
     border-radius: 10px;
     border: 1px solid rgba(40, 167, 69, 0.2);
 }
-
 .status-indicator {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
     font-weight: 600;
-    color: #28a745;
+    color: #28a745; /* Green text */
 }
-
 .live-dot {
     width: 12px;
     height: 12px;
-    background: #28a745;
+    background: #28a745; /* Green dot */
     border-radius: 50%;
     animation: pulse 2s infinite;
 }
-
 @keyframes pulse {
     0% {
         box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
@@ -197,43 +192,35 @@
         box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
     }
 }
-
 .info-text {
     color: #6c757d;
     margin-top: 1rem;
 }
-
 .info-text p {
     margin-bottom: 0.5rem;
 }
-
 /* Responsive Design */
 @media (max-width: 768px) {
     .card-body {
         padding: 2rem 1rem;
     }
-    
     .form-container {
         padding: 1.5rem;
     }
-    
     .btn-lg {
         padding: 0.75rem 2rem;
         font-size: 1rem;
     }
-    
     .page-title {
         font-size: 1.5rem;
     }
 }
-
 @media (max-width: 576px) {
     .btn-lg {
         width: 100%;
         padding: 1rem;
         font-size: 0.9rem;
     }
-    
     .page-icon {
         width: 60px;
         height: 60px;

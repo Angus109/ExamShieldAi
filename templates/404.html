@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<head>
     <title>ExamShield.ai</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="//use.fontawesome.com/releases/v5.0.7/css/all.css">
@@ -7,22 +8,22 @@
     <!-- Favicon -->
     <link rel="apple-touch-icon" sizes="120x120" href="{{ url_for('static', filename='volt/assets/img/favicon/apple-touch-icon.png') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='volt/assets/img/favicon/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16"  href="{{ url_for('static', filename='volt/assets/img/favicon/favicon-16x16.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='volt/assets/img/favicon/favicon-16x16.png') }}">
     <link rel="manifest" href="{{ url_for('static', filename='volt/assets/img/favicon/site.webmanifest') }}">
-    <link rel="mask-icon" color="#ffffff"  href="{{ url_for('static', filename='volt/static/assets/img/favicon/safari-pinned-tab.svg') }}">
-    
+    <link rel="mask-icon" color="#ffffff" href="{{ url_for('static', filename='volt/static/assets/img/favicon/safari-pinned-tab.svg') }}">
+
     <!-- Fontawesome -->
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='volt/vendor/@fortawesome/fontawesome-free/css/all.min.css') }}">
-    
+
     <!-- Pixel CSS -->
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='volt/css/volt.css') }}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  
+
     {% block head %}{% endblock %}
-    
+
 </head>
 
-<body>    
+<body>
     <main>
         <section class="vh-100 d-flex align-items-center justify-content-center">
             <div class="container">
@@ -30,10 +31,10 @@
                     <div class="col-12 text-center d-flex align-items-center justify-content-center">
                         <div>
                             <img class="img-fluid w-50" src="{{ url_for('static', filename='volt/assets/img/illustrations/404.svg') }}" alt="404 not found">
-                            <h1 class="mt-5">Page not <span class="fw-bolder text-primary">found</span></h1>
-                            <p class="lead my-4">Oops! Looks like you followed a bad link. If you think this is a
+                            <h1 class="mt-5 text-dark-student-theme">Page not <span class="fw-bolder text-primary-student-theme">found</span></h1>
+                            <p class="lead my-4 text-muted">Oops! Looks like you followed a bad link. If you think this is a
                                 problem with us, please tell us.</p>
-                            <a class="btn btn-dark animate-hover" href="/"><i class="fas fa-chevron-left me-3 ps-2 animate-left-3"></i>Go back home</a>
+                            <a class="btn btn-primary-student-theme animate-hover" href="/"><i class="fas fa-chevron-left me-3 ps-2 animate-left-3"></i>Go back home</a>
                         </div>
                     </div>
                 </div>
@@ -41,45 +42,104 @@
         </section>
     </main>
 
-    <footer id="sticky-footer" class="py-4">
+    <footer id="sticky-footer" class="py-4 bg-light-student-theme">
         <div class="d-flex text-center justify-content-center align-items-center" role="contentinfo">
-                      <p class="font-weight-bold font-medium mb-0">Copyright © ExamShield.ai
-                          <span class="current-year">
-                            <script>document.write(new Date().getFullYear())</script>
-                          </span>. All rights reserved.</p>
+            <p class="font-weight-bold font-medium mb-0 text-dark-student-theme">Copyright © ExamShield.ai
+                <span class="current-year">
+                    <script>document.write(new Date().getFullYear())</script>
+                </span>. All rights reserved.</p>
         </div><br>
         <div class="d-flex text-center justify-content-center align-items-center" role="contentinfo">
-              <p class="font-weight-bold font-small mb-0">
-                <span><a href="">
-                  Made with &#128151 By XBOT</a></span></p>
-      </div>
-      </footer>
-      
-<!-- Place this tag in your head or just before your close body tag. -->
-<script async defer src="https://buttons.github.io/buttons.js"></script>
+            <p class="font-weight-bold font-small mb-0 text-dark-student-theme">
+                <span><a href="" class="text-primary-student-theme">Made with &#128151 By XBOT</a></span></p>
+        </div>
+    </footer>
 
-<!-- pixel JS -->
-<script src="{{ url_for('static', filename='volt/css/assets/js/volt.js') }}"></script>
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
 
-<!-- Core -->
-<script src="{{ url_for('static', filename='vendor/jquery/dist/jquery.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/popper.js/dist/umd/popper.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/bootstrap/dist/js/bootstrap.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/headroom.js/dist/headroom.min.js') }}"></script>
+    <!-- pixel JS -->
+    <script src="{{ url_for('static', filename='volt/css/assets/js/volt.js') }}"></script>
 
-<!-- Vendor JS -->
-<script src="{{ url_for('static', filename='vendor/onscreen/dist/on-screen.umd.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/nouislider/distribute/nouislider.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js') }}"></script>
-<script src="{{ url_for('static', filename='volt/vendor/waypoints/lib/jquery.waypoints.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/jarallax/dist/jarallax.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/jquery.counterup/jquery.counterup.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/jquery-countdown/dist/jquery.countdown.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/prismjs/prism.js') }}"></script>
+    <!-- Core -->
+    <script src="{{ url_for('static', filename='vendor/jquery/dist/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/popper.js/dist/umd/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/dist/js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/headroom.js/dist/headroom.min.js') }}"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-    
+    <!-- Vendor JS -->
+    <script src="{{ url_for('static', filename='vendor/onscreen/dist/on-screen.umd.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/nouislider/distribute/nouislider.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='volt/vendor/waypoints/lib/jquery.waypoints.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/jarallax/dist/jarallax.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/jquery.counterup/jquery.counterup.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/jquery-countdown/dist/jquery.countdown.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/prismjs/prism.js') }}"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<style>
+    /* Common styles for enhanced forms and tables */
+    :root {
+        --student-primary: #17a2b8; /* Info/Cyan */
+        --student-secondary: #007bff; /* Blue */
+        --student-accent: #6f42c1; /* Purple */
+        --student-gradient: linear-gradient(135deg, var(--student-primary) 0%, var(--student-secondary) 50%, var(--student-accent) 100%);
+        --student-gradient-hover: linear-gradient(135deg, #148a9b 0%, #0069d9 50%, #5e37a8 100%);
+        --student-dark: #2c3e50;
+        --student-light: rgba(255, 255, 255, 0.1);
+        --student-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        --student-shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-primary-student-theme {
+        background: linear-gradient(135deg, var(--student-primary), var(--student-secondary));
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        color: white;
+    }
+
+    .btn-primary-student-theme:hover {
+        background: var(--student-gradient-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(23, 162, 184, 0.4);
+        color: white; /* Ensure text color remains white on hover */
+    }
+
+    .btn-primary-student-theme:focus {
+        box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+    }
+
+    .text-primary-student-theme {
+        color: var(--student-primary) !important;
+    }
+
+    .text-dark-student-theme {
+        color: var(--student-dark) !important;
+    }
+
+    .bg-light-student-theme {
+        background-color: #f8f9fa !important; /* Light background for footer */
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .vh-100 {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 0;
+        }
+        .img-fluid.w-50 {
+            width: 80% !important;
+        }
+    }
+</style>
 </body>
 </html>

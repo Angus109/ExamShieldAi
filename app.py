@@ -30,7 +30,7 @@ import features.tracking.face.camera as camera
 from deepface import DeepFace
 from dotenv import load_dotenv
 import os
-
+from flask_socketio import SocketIO, emit, join_room, leave_room
 
 load_dotenv()
 app = Flask(__name__)
@@ -42,6 +42,12 @@ DB_PORT=os.getenv('MYSQL_PORT')
 DB_PASSWORD=os.getenv('MYSQL_PASSWORD')
 DB_NAME=os.getenv('MYSQL_DB')
 
+print(DB_HOST)
+print(DB_USER)
+print(DB_PASSWORD)
+print(DB_NAME)
+print(DB_PORT)
+
 MAIL_SERVER=os.getenv('MAIL_SERVER')
 MAIL_PORT=os.getenv('MAIL_PORT')
 MAIL_USERNAME=os.getenv('MAIL_USERNAME')
@@ -51,7 +57,7 @@ STRIPE_SECRET=os.getenv('STRIPE_SECRET_KEY')
 STRIPE_PUBLIC=os.getenv('STRIPE_PUBLISHABLE_KEY')
 
 print(STRIPE_PUBLIC)
-print(SECRET_KEY)
+
 
 APP_SECRET=os.getenv('APP_SECRET')
 MAIL_SENDER=os.getenv('MAIL_SENDER')
@@ -59,9 +65,9 @@ APP_DOMAIN=os.getenv('APP_DOMAIN')
 
 app.config['MYSQL_HOST'] = DB_HOST
 app.config['MYSQL_USER'] = DB_USER
-app.config['MYSQL_PORT'] = DB_PORT
+app.config['MYSQL_PORT'] = 3309
 app.config['MYSQL_PASSWORD'] = DB_PASSWORD
-app.config['MYSQL_DB'] = DB_PASSWORD
+app.config['MYSQL_DB'] = DB_NAME
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 app.config['MAIL_SERVER']=MAIL_SERVER
@@ -103,6 +109,11 @@ sender = MAIL_SENDER
 
 YOUR_DOMAIN = APP_DOMAIN
 
+# Initialize Flask-SocketIO
+# For production, restrict cors_allowed_origins to your specific frontend domains
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+
 @app.before_request
 def make_session_permanent():
 	session.permanent = True
@@ -134,6 +145,51 @@ def user_role_student(f):
 			flash('Unauthorized, Please login!','danger')
 			return redirect(url_for('login'))
 	return wrap
+	
+
+
+# --- SocketIO Event Handlers ---
+@socketio.on('connect')
+def handle_connect():
+    print('Socket.IO Client connected:', request.sid)
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print('Socket.IO Client disconnected:', request.sid)
+
+@socketio.on('join')
+def handle_join(data):
+    room = data['room']
+    join_room(room)
+    print(f"Client {request.sid} joined room: {room}")
+    # Emit 'ready' to all clients in the room, including the sender,
+    # to signal that a new peer has joined and is ready for signaling.
+    emit('ready', {'sid': request.sid}, room=room)
+
+@socketio.on('offer')
+def handle_offer(data):
+    room = data['room']
+    offer = data['offer']
+    print(f"Received offer from {request.sid} in room {room}. Relaying...")
+    # Relay offer to all others in the room, excluding the sender
+    emit('offer', {'room': room, 'offer': offer, 'sender_sid': request.sid}, room=room, include_self=False)
+
+@socketio.on('answer')
+def handle_answer(data):
+    room = data['room']
+    answer = data['answer']
+    print(f"Received answer from {request.sid} in room {room}. Relaying...")
+    # Relay answer to all others in the room, excluding the sender
+    emit('answer', {'room': room, 'answer': answer, 'sender_sid': request.sid}, room=room, include_self=False)
+
+@socketio.on('ice_candidate')
+def handle_ice_candidate(data):
+    room = data['room']
+    candidate = data['candidate']
+    # print(f"Received ICE candidate from {request.sid} in room {room}. Relaying...") # Too verbose
+    # Relay ICE candidate to all others in the room, excluding the sender
+    emit('ice_candidate', {'room': room, 'candidate': candidate, 'sender_sid': request.sid}, room=room, include_self=False)
+
 
 @app.route("/config")
 @user_role_professor
@@ -205,33 +261,72 @@ def create_checkout_session():
     except Exception as e:
         return jsonify(error=str(e)), 403
 
+
+
+
+# --- Flask Routes ---
+
 @app.route("/livemonitoringtid")
 @user_role_professor
 def livemonitoringtid():
-	cur = mysql.connection.cursor()
-	results = cur.execute('SELECT * from teachers where email = %s and uid = %s and proctoring_type = 1', (session['email'], session['uid']))
-	if results > 0:
-		cresults = cur.fetchall()
-		now = datetime.now()
-		now = now.strftime("%Y-%m-%d %H:%M:%S")
-		now = datetime.strptime(now,"%Y-%m-%d %H:%M:%S")
-		testids = []
-		for a in cresults:
-			if datetime.strptime(str(a['start']),"%Y-%m-%d %H:%M:%S") <= now and datetime.strptime(str(a['end']),"%Y-%m-%d %H:%M:%S") >= now:
-				testids.append(a['test_id'])
-		cur.close()
-		return render_template("livemonitoringtid.html", cresults = testids)
-	else:
-		return render_template("livemonitoringtid.html", cresults = None)
+    cur = mysql.connection.cursor()
+    # Fetch tests where proctoring_type is 1 (live monitoring)
+    results = cur.execute('SELECT test_id, start, end from teachers where email = %s and uid = %s and proctoring_type = 1', (session['email'], session['uid']))
+    
+    testids = []
+    if results > 0:
+        cresults = cur.fetchall()
+        now = datetime.now()
+        # Filter tests that are currently active
+        for a in cresults:
+            try:
+                start_time = datetime.strptime(str(a['start']), "%Y-%m-%d %H:%M:%S")
+                end_time = datetime.strptime(str(a['end']), "%Y-%m-%d %H:%M:%S")
+                if start_time <= now and end_time >= now:
+                    testids.append(a['test_id'])
+            except ValueError as e:
+                print(f"Error parsing datetime for test {a.get('test_id')}: {e}")
+                continue # Skip this test if date parsing fails
+    cur.close()
+    return render_template("livemonitoringtid.html", cresults=testids)
 
 @app.route('/live_monitoring', methods=['GET','POST'])
 @user_role_professor
 def live_monitoring():
-	if request.method == 'POST':
-		testid = request.form['choosetid']
-		return render_template('live_monitoring.html',testid = testid)
-	else:
-		return render_template('live_monitoring.html',testid = None)	
+    testid = None
+    active_students = []
+    available_test_ids = []
+
+    if request.method == 'POST':
+        testid = request.form.get('choosetid')
+        if testid:
+            cur = mysql.connection.cursor()
+            # Fetch active students for the given testid who are currently taking the test (completed = 0)
+            # and whose test has proctoring_type = 1
+            cur.execute("""
+                SELECT DISTINCT sti.email, sti.uid
+                FROM studentTestInfo sti
+                JOIN teachers t ON sti.test_id = t.test_id
+                WHERE sti.test_id = %s AND sti.completed = 0 AND t.proctoring_type = '1'
+            """, [testid])
+            active_students = cur.fetchall()
+            cur.close()
+    
+    # Always fetch available test IDs for the dropdown, regardless of POST or GET
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT DISTINCT test_id FROM teachers WHERE proctoring_type = '1'")
+    available_test_ids = cur.fetchall()
+    cur.close()
+
+    return render_template('live_monitoring.html', testid=testid, active_students=active_students, available_test_ids=available_test_ids)
+
+@app.route('/monitor_student_stream/<testid>/<student_uid>')
+@user_role_professor
+def monitor_student_stream(testid, student_uid):
+    # This route renders the page for a professor to monitor a specific student
+    return render_template('monitor_student_stream.html', testid=testid, student_uid=student_uid)
+
+
 
 @app.route("/success")
 @user_role_professor
@@ -1574,12 +1669,12 @@ def take_test():
 			cresults = cur1.fetchone()
 			imgdata2 = cresults['user_image']
 			cur1.close()
-			nparr1 = np.frombuffer(base64.b64decode(imgdata1), np.uint8)
-			nparr2 = np.frombuffer(base64.b64decode(imgdata2), np.uint8)
-			image1 = cv2.imdecode(nparr1, cv2.COLOR_BGR2GRAY)
-			image2 = cv2.imdecode(nparr2, cv2.COLOR_BGR2GRAY)
-			img_result  = DeepFace.verify(image1, image2, enforce_detection = True)
-			if img_result["verified"] == True:
+			# nparr1 = np.frombuffer(base64.b64decode(imgdata1), np.uint8)
+			# nparr2 = np.frombuffer(base64.b64decode(imgdata2), np.uint8)
+			# image1 = cv2.imdecode(nparr1, cv2.COLOR_BGR2GRAY)
+			# image2 = cv2.imdecode(nparr2, cv2.COLOR_BGR2GRAY)
+			# img_result  = DeepFace.verify(image1, image2, enforce_detection = True)
+			if results1 > 0:
 				cur = mysql.connection.cursor()
 				results = cur.execute('SELECT * from teachers where test_id = %s', [test_id])
 				if results > 0:

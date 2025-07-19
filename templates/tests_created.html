@@ -1,37 +1,33 @@
 {% extends 'professor_dashboard.html' %}
 {% block body %}
 
-<div class="container-fluid">
+<div class="container-fluid py-4">
     <div class="row justify-content-center">
         <div class="col-12">
-            {% if(cresults is not none) %}
-            <!-- Header -->
-            <div class="page-header text-center mb-4">
-                <h3 class="page-title">STUDENT RESULTS</h3>
-                <p class="page-subtitle">View and manage published examination results</p>
-            </div>
-
-            <!-- Enhanced Table Card -->
-            <div class="card border-0 shadow-lg">
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
+            <div class="card enhanced-card">
+                <div class="card-header enhanced-card-header text-center">
+                    <h3 class="h3 card-title text-white mb-0">STUDENT RESULTS</h3>
+                </div>
+                <div class="card-body p-4">
+                    {% if(cresults is not none and tests is not none) %}
+                    <div class="table-responsive enhanced-table-responsive">
+                        <table class="table table-hover mb-0 enhanced-table">
                             <thead class="table-header">
                                 <tr>
-                                    <th class="border-0">Test ID</th>
-                                    <th class="border-0">Subject</th>
-                                    <th class="border-0">Topic</th>
-                                    <th class="border-0 text-center">Result</th>
+                                    <th class="border-0" data-label="Test ID">Test ID</th>
+                                    <th class="border-0" data-label="Subject">Subject</th>
+                                    <th class="border-0" data-label="Topic">Topic</th>
+                                    <th class="border-0 text-center" data-label="Result">Result</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for test in tests %}
                                 <tr class="table-row">
-                                    <td class="test-id-cell">{{test['test_id']}}</td>
-                                    <td class="subject-cell">{{test['subject']}}</td>
-                                    <td class="topic-cell">{{test['topic']}}</td>
-                                    <td class="text-center">
-                                        <a class="btn btn-primary btn-result" href="/{{session.email}}/tests-created/{{test['test_id']}}">
+                                    <td class="test-id-cell" data-label="Test ID">{{test['test_id']}}</td>
+                                    <td class="subject-cell" data-label="Subject">{{test['subject']}}</td>
+                                    <td class="topic-cell" data-label="Topic">{{test['topic']}}</td>
+                                    <td class="text-center" data-label="Result">
+                                        <a class="btn btn-primary-student-theme btn-result" href="/{{session.email}}/tests-created/{{test['test_id']}}">
                                             <i class="fas fa-chart-bar me-1"></i>View Result
                                         </a>
                                     </td>
@@ -40,14 +36,8 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
-            </div>
-
-            {% else %}
-            <!-- No Records Found -->
-            <div class="card border-0 shadow-lg">
-                <div class="card-body text-center p-5">
-                    <div class="empty-state">
+                    {% else %}
+                    <div class="empty-state text-center p-5">
                         <lottie-player 
                             src="https://assets7.lottiefiles.com/datafiles/vhvOcuUkH41HdrL/data.json"
                             background="transparent"
@@ -59,34 +49,44 @@
                         <h3 class="empty-title">No Records Found!</h3>
                         <p class="empty-subtitle">No published results available at the moment.</p>
                     </div>
+                    {% endif %}
                 </div>
             </div>
-            {% endif %}
         </div>
     </div>
 </div>
 
 <style>
 /* Tests Created Styles */
-.page-header {
+:root {
+    --student-primary: #17a2b8; /* Info/Cyan */
+    --student-secondary: #007bff; /* Blue */
+    --student-accent: #6f42c1; /* Purple */
+    --student-gradient: linear-gradient(135deg, var(--student-primary) 0%, var(--student-secondary) 50%, var(--student-accent) 100%);
+    --student-gradient-hover: linear-gradient(135deg, #148a9b 0%, #0069d9 50%, #5e37a8 100%);
+    --student-dark: #2c3e50;
+    --student-light: rgba(255, 255, 255, 0.1);
+    --student-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    --student-shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.enhanced-card {
+    border: none;
+    border-radius: 20px;
+    box-shadow: var(--student-shadow);
+    overflow: hidden;
     margin-bottom: 2rem;
 }
 
-.page-title {
-    color: #2c3e50;
+.enhanced-card-header {
+    background: var(--student-gradient);
+    padding: 1.5rem 2rem;
+    border-bottom: none;
+    border-radius: 20px 20px 0 0;
+}
+
+.card-title {
     font-weight: 700;
-    margin-bottom: 0.5rem;
-}
-
-.page-subtitle {
-    color: #6c757d;
-    font-size: 1.1rem;
-    margin-bottom: 0;
-}
-
-.card {
-    border-radius: 15px;
-    overflow: hidden;
 }
 
 .table-header {
@@ -95,7 +95,7 @@
 
 .table-header th {
     font-weight: 600;
-    color: #2c3e50;
+    color: var(--student-dark);
     padding: 1.25rem 1rem;
     border: none;
     font-size: 0.95rem;
@@ -104,11 +104,17 @@
 .table-row {
     transition: all 0.3s ease;
     border-bottom: 1px solid #f1f3f4;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 10px; /* Space between rows */
+    display: table-row; /* Ensure it behaves as a table row */
 }
 
 .table-row:hover {
-    background-color: rgba(102, 126, 234, 0.05);
-    transform: translateX(5px);
+    background-color: rgba(23, 162, 184, 0.05); /* Light hover effect */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .table-row td {
@@ -119,7 +125,7 @@
 
 .test-id-cell {
     font-weight: 600;
-    color: #2c3e50;
+    color: var(--student-dark);
     font-family: 'Monaco', 'Menlo', monospace;
 }
 
@@ -132,19 +138,22 @@
     color: #6c757d;
 }
 
-.btn-result {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+.btn-primary-student-theme {
+    background: linear-gradient(135deg, var(--student-primary), var(--student-secondary));
     border: none;
     border-radius: 20px;
     padding: 0.5rem 1.25rem;
     font-weight: 600;
     transition: all 0.3s ease;
     font-size: 0.875rem;
+    color: white;
 }
 
-.btn-result:hover {
+.btn-primary-student-theme:hover {
+    background: var(--student-gradient-hover);
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 8px 25px rgba(23, 162, 184, 0.4);
+    color: white;
 }
 
 .empty-state {
@@ -153,7 +162,7 @@
 }
 
 .empty-title {
-    color: #2c3e50;
+    color: var(--student-dark);
     font-weight: 600;
     margin-top: 1rem;
     margin-bottom: 0.5rem;
@@ -164,44 +173,71 @@
     font-size: 1.1rem;
 }
 
-/* Responsive Design */
+/* Responsive Design for Tables */
 @media (max-width: 768px) {
-    .table-responsive {
-        font-size: 0.875rem;
+    .enhanced-table-responsive {
+        overflow-x: auto;
     }
-    
+    .enhanced-table {
+        width: 100%;
+        min-width: 600px; /* Ensure table doesn't shrink too much */
+    }
     .table-header th,
     .table-row td {
         padding: 0.75rem 0.5rem;
+        font-size: 0.875rem;
     }
-    
     .btn-result {
         padding: 0.375rem 1rem;
         font-size: 0.8rem;
     }
-    
-    .page-title {
-        font-size: 1.5rem;
-    }
 }
 
 @media (max-width: 576px) {
-    .table-responsive {
-        font-size: 0.8rem;
+    .table-header {
+        display: none; /* Hide table headers on small screens */
     }
-    
-    .table-header th,
-    .table-row td {
-        padding: 0.5rem 0.25rem;
+    .enhanced-table, .enhanced-table tbody, .enhanced-table tr, .enhanced-table td {
+        display: block;
+        width: 100%;
     }
-    
+    .enhanced-table tr {
+        margin-bottom: 1rem;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    .enhanced-table td {
+        text-align: right;
+        padding-left: 50%;
+        position: relative;
+    }
+    .enhanced-table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 1rem;
+        width: calc(50% - 1.5rem);
+        text-align: left;
+        font-weight: 600;
+        color: var(--student-dark);
+    }
+    .enhanced-table td:nth-of-type(1)::before { content: "Test ID"; }
+    .enhanced-table td:nth-of-type(2)::before { content: "Subject"; }
+    .enhanced-table td:nth-of-type(3)::before { content: "Topic"; }
+    .enhanced-table td:nth-of-type(4)::before { content: "Result"; }
+
     .btn-result {
-        padding: 0.25rem 0.75rem;
-        font-size: 0.75rem;
+        width: 100%;
+        margin-top: 0.5rem;
     }
-    
     .btn-result .me-1 {
-        display: none;
+        display: inline-block; /* Show icon again for full-width button */
+    }
+    .page-title {
+        font-size: 1.5rem;
+    }
+    .page-subtitle {
+        font-size: 0.9rem;
     }
 }
 </style>

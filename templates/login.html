@@ -1,137 +1,607 @@
 {% extends 'layout.html' %}
 {% block body %}
- <main>
- <section class="d-flex align-items-center my-5 mt-lg-6 mb-lg-5">
-            <div class="container">
-                    <div class="col-12 d-flex align-items-center justify-content-center">
-                        <div class="bg-white shadow-soft border rounded border-light p-4 p-lg-5 w-100 fmxw-650">
-                            <div class="text-center text-md-center mb-4 mt-md-0">
-                                <h1 class="mb-0 h3">Sign in to our platform</h1>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - EaxmShield.ai</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Enhanced CSS Variables */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+            animation: backgroundShift 20s ease-in-out infinite;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(5deg); }
+        }
+
+        /* Registration Container */
+        .registration-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 0;
+        }
+
+        .registration-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .registration-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent-gradient);
+        }
+
+        .registration-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            display: block;
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 1rem;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(79, 172, 254, 0.8);
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.3);
+            color: white;
+            outline: none;
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .form-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 1rem;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .form-select:focus {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(79, 172, 254, 0.8);
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.3);
+            color: white;
+            outline: none;
+        }
+
+        .form-select option {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .btn-register {
+            background: var(--secondary-gradient);
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            color: white;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            color: white;
+        }
+
+        .btn-register::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-register:hover::before {
+            left: 100%;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .login-link a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .login-link a:hover {
+            color: #4facfe;
+            text-decoration: underline;
+        }
+
+        /* Floating Animation */
+        .floating {
+            animation: floating 6s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .registration-card {
+                margin: 1rem;
+                padding: 2rem;
+            }
+            
+            .registration-title {
+                font-size: 2rem;
+            }
+        }
+
+        /* Enhanced Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Enhanced Camera Section */
+        .camera-section {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(255, 255, 255, 0.95));
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 1s ease-out 0.9s both;
+        }
+
+        .camera-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="5" cy="5" r="1" fill="rgba(102,126,234,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .camera-section h3 {
+            color: white;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Enhanced Video Frame */
+        .video-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            z-index: 2;
+        }
+
+        .video-frame {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            padding: 8px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        .video-frame::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+            background: #000;
+            border-radius: 16px;
+            z-index: 1;
+        }
+
+        .video-frame::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
+            background-size: 200% 200%;
+            animation: shimmer 3s infinite;
+            border-radius: 20px;
+        }
+
+        #stream {
+            position: relative;
+            z-index: 2;
+            border-radius: 16px;
+            width: 400px;
+            height: 300px;
+            object-fit: cover;
+            background: #1a1a1a;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #capture {
+            display: none;
+        }
+
+        /* Camera Status Indicator */
+        .camera-status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            z-index: 3;
+            animation: pulse 2s ease-in-out infinite;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .camera-status.inactive {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        /* Enhanced Capture Button */
+        .capture-btn {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 25px;
+            padding: 1rem 2.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: white;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            margin: 1rem 0;
+            z-index: 2;
+        }
+
+        .capture-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .capture-btn:hover::before {
+            left: 100%;
+        }
+
+        .capture-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .capture-btn:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .capture-btn i {
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        /* Enhanced Snapshot Display */
+        #snapshot {
+            margin-top: 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        #snapshot img {
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 3px solid white;
+            transition: all 0.3s ease;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        #snapshot img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Enhanced Submit Button */
+        .submit-btn {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 1.25rem 3rem;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: white;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            margin-top: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Loading States */
+        .loading {
+            position: relative;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+            border-radius: inherit;
+        }
+
+        /* Performance Optimizations */
+        .registration-container,
+        .video-frame,
+        .capture-btn,
+        .submit-btn,
+        .form-control {
+            will-change: transform;
+        }
+
+        /* Accessibility Enhancements */
+        .form-control:focus,
+        .form-select:focus,
+        .capture-btn:focus,
+        .submit-btn:focus {
+            outline: 3px solid rgba(102, 126, 234, 0.3);
+            outline-offset: 2px;
+        }
+
+        /* Success Animation */
+        @keyframes success {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .success-animation {
+            animation: success 0.6s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg"></div>
+
+    <div class="registration-container">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6 col-md-8">
+                    <div class="registration-card floating">
+                        <h1 class="registration-title">
+                            <i class="fas fa-user-plus me-3"></i>Login
+                        </h1>
+                        
+                        <form action="/login" method="POST">
+                           
+                            
+                            <div class="form-group">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
                             </div>
-							<img src="{{ url_for('static', filename='secure_login.png') }}">
-              <div class="card-body">
-                            <form action="" method="POST" class="mt-4">
-                                <div class="form-group">
-                                    <label for="email">Email</label>
-                                    <div class="input-group mb-4">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text"><span class="fas fa-envelope"></span></span>
-                                        </div>
-									<input name="email" class="form-control" placeholder="example@company.com" type="text" required>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <div class="form-group">
-                                        <label for="password">Password</label>
-                                        <div class="input-group mb-4">
-                                            <div class="input-group-prepend">
-                                                <span class="input-group-text"><span class="fas fa-unlock-alt"></span></span>
-                                            </div>
-									<input name="password" type="text" class="form-control" placeholder="Password" style="-webkit-text-security:disc;" aria-label="Password" required>                                        </div>
-                                </div>
-                                </div>
-
-                                    <div class="form-group">
-                                        <label class="my-1 mr-2" for="inlineFormCustomSelectPref">Choose User Type</label>
-                                        <select class="custom-select my-1 mr-sm-2" id="inlineFormCustomSelectPref" name="user_type" required>
-                                            <option value="student">Student</option>
-                                            <option value="teacher">Professor</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <video id="stream" width="370" height="320">
-                                            <canvas id="capture" width="370" height="320">
-                                            </canvas>
-                                          </video>
-                                            <button id="btn-capture" type="button" class="btn btn-primary justify-content-center">Capture Image</button>
-                                        <br><br>
-                                            <div id="snapshot"></div>
-                                        <input type="hidden" id="image_hidden" name="image_hidden">
-                                        </div>
-
-                                    <div class="d-flex justify-content-between align-items-center mb-4">
-                                        <div><a href="/lostpassword" class="font-weight-bold">Lost password?</a></div>
-                                </div>
-                            <button type="submit" class="btn btn-block btn-primary">Sign in</button>
+                            
+                            <div class="form-group">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Create a strong password" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="user_type" class="form-label">User Type</label>
+                                <select class="form-select" id="user_type" name="user_type" required>
+                                    <option value="">Select user type</option>
+                                    <option value="student">Student</option>
+                                    <option value="teacher">Teacher/Professor</option>
+                                </select>
+                            </div>
+                            
+                            <button type="submit" class="btn-register">
+                                login
+                            </button>
                         </form>
-             
-                        <div class="d-block d-sm-flex justify-content-center align-items-center mt-4">
-                            <span class="font-weight-normal">
-                                Not registered?
-                             <a href="/register" class="font-weight-bold">Create account</a>
-                            </span>
+                        
+                        <div class="login-link">
+                            <p style="color: rgba(255, 255, 255, 0.8);">
+                                Don't have an account? 
+                                <a href="/register">Register here</a>
+                            </p>
                         </div>
-              </div>
-  </div>
-  <div>
-  </div>
-</div>
-</section>
-</main>
-<script>
-    var btnCapture = document.getElementById("btn-capture");
-    var stream = document.getElementById("stream");
-    var capture = document.getElementById("capture");
-    var snapshot = document.getElementById("snapshot");
-    var cameraStream = null;
-    
-    btnCapture.addEventListener( "click", captureSnapshot );
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    function startStreaming() {
-    
-      var mediaSupport = 'mediaDevices' in navigator;
-    
-      if( mediaSupport && null == cameraStream ) {
-    
-        navigator.mediaDevices.getUserMedia( { video: true } )
-        .then( function( mediaStream ) {
-          cameraStream = mediaStream;
-          stream.srcObject = mediaStream;
-          stream.play();
-        })
-        .catch( function( err ) {
-          console.log( "Unable to access camera: " + err );
-        });
-      }
-      else {
-        alert( 'Your browser does not support media devices.' );
-        return;
-      }
-    }
-    
-    function stopStreaming() {
-      if( null != cameraStream ) {
-        var track = cameraStream.getTracks()[ 0 ];
-        track.stop();
-        stream.load();
-        cameraStream = null;
-      }
-    }
-    
-    function captureSnapshot() {
-      if( null != cameraStream ) {
-        var ctx = capture.getContext( '2d' );
-        var img = new Image();
-        ctx.drawImage( stream, 0, 0, capture.width, capture.height );
-        img.src		= capture.toDataURL( "image/png" );
-        img.width	= 370;
-        img.height	= 320;
-        //console.log(capture.toDataURL( "image/png" ));
-        snapshot.innerHTML = '';
-        snapshot.appendChild( img );
-        var d1 = capture.toDataURL("image/png");
-        var res = d1.replace("data:image/png;base64,", "");
-        console.log(res);
-        snapshot.innerHTML = '';
-        snapshot.appendChild( img );
-        $("#image_hidden").val(res)    
-      }
-    }
-    window.onload = function() {
-       startStreaming();
-       captureSnapshot();
-    }
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+</html>
+
 {% endblock %}
