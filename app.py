@@ -190,7 +190,22 @@ def handle_ice_candidate(data):
     # Relay ICE candidate to all others in the room, excluding the sender
     emit('ice_candidate', {'room': room, 'candidate': candidate, 'sender_sid': request.sid}, room=room, include_self=False)
 
+@socketio.on('student_reconnected')
+def handle_student_reconnected(data):
+    room = data['room']
+    emit('student_reconnected', room=room)
 
+@socketio.on('professor_ready')
+def handle_professor_ready(data):
+    room = data['room']
+    emit('professor_ready', room=room)
+
+@socketio.on('student_ready')
+def handle_student_ready(data):
+    room = data['room']
+    emit('student_ready', room=room)    
+    
+    
 @app.route("/config")
 @user_role_professor
 def get_publishable_key():

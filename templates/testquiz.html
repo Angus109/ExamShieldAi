@@ -134,8 +134,12 @@
 <script type="text/javascript" src="{{ url_for('static', filename='app.js') }}"></script>
 
 
+<!-- Add this right before the closing </body> tag -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+
+<!-- Previous code remains the same until the WebRTC script -->
 <script>
-const socket = io();
+const socket = io(window.location.origin);
 const testId = "{{tid}}";
 const studentUid = "{{session['uid']}}";
 const roomName = testId + '-' + studentUid;
@@ -143,143 +147,319 @@ const roomName = testId + '-' + studentUid;
 const localVideo = document.getElementById('localVideo');
 const proctoringStatus = document.getElementById('proctoringStatus');
 
-let peerConnection = null;
-let localStream = null;
-let iceCandidatesQueue = []; // Queue for ICE candidates
+let peerConnection;
+let localStream;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
+let isNegotiating = false;
+let makingOffer = false;
 
 const iceServers = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
-initializePeerConnection();
+
+function updateProctoringStatus(message, type = '') {
+  proctoringStatus.textContent = message;
+  proctoringStatus.style.color = '';
+  if (type === 'error') proctoringStatus.style.color = 'red';
+  else if (type === 'success') proctoringStatus.style.color = 'green';
+}
 
 async function startWebRTCStream() {
-    console.log("[Student] Starting WebRTC stream setup.");
-    try {
-        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        localVideo.srcObject = localStream;
-        proctoringStatus.innerText = "Camera active. Waiting for professor...";
-        console.log("[Student] Local media stream obtained.");
-
-        initializePeerConnection(); // Initialize PC after getting local stream
-        localStream.getTracks().forEach(track => {
-          peerConnection.addTrack(track, localStream);
-          console.log("[Student] Added local track to peerConnection:", track);
-        });
-
-    } catch (err) {
-        proctoringStatus.innerText = "Stream failed: " + err.message;
-        console.error("[Student] Error accessing media devices or starting WebRTC stream:", err);
-    }
-}
-
-function initializePeerConnection() {
-  console.log("[Student] Initializing RTCPeerConnection...");
-  if (peerConnection && peerConnection.signalingState !== 'closed') {
-    console.log("[Student] Existing peerConnection is not closed, closing it.");
-    peerConnection.close();
-  }
-  peerConnection = new RTCPeerConnection(iceServers);
-  iceCandidatesQueue = []; // Clear queue on new connection
-
-  peerConnection.onicecandidate = event => {
-      if (event.candidate) {
-          console.log("[Student] Sending ICE candidate:", event.candidate);
-          socket.emit('ice_candidate', { room: roomName, candidate: event.candidate });
-      } else {
-        console.log("[Student] ICE gathering complete.");
-      }
-  };
-
-  peerConnection.oniceconnectionstatechange = () => {
-    console.log(`[Student] ICE connection state changed: ${peerConnection.iceConnectionState}`);
-    proctoringStatus.innerText = `ICE state: ${peerConnection.iceConnectionState}`;
-  };
-
-  peerConnection.onsignalingstatechange = () => {
-    console.log(`[Student] Signaling state changed: ${peerConnection.signalingState}`);
-  };
-
-  // Student does NOT initiate offer on negotiationneeded.
-  // The professor will send the offer.
-  peerConnection.onnegotiationneeded = () => {
-    console.log("[Student] Negotiation needed, but student is responder. Waiting for offer from professor.");
-  };
-
-  peerConnection.onconnectionstatechange = () => {
-    console.log(`[Student] Peer connection state changed: ${peerConnection.connectionState}`);
-    proctoringStatus.innerText = `Connection state: ${peerConnection.connectionState}`;
-  };
-}
-
-
-socket.on('offer', async data => {
-    if (data.sender_sid !== socket.id) {
-        console.log("[Student] Received offer:", data.offer);
-        if (peerConnection && peerConnection.signalingState !== 'closed') {
-            try {
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
-                console.log("[Student] Remote description set from offer. Creating answer...");
-                const answer = await peerConnection.createAnswer();
-                await peerConnection.setLocalDescription(answer);
-                console.log("[Student] Created and set local answer:", peerConnection.localDescription);
-                socket.emit('answer', { room: roomName, answer: peerConnection.localDescription });
-                proctoringStatus.innerText = "Live proctoring stream connected.";
-                // Add any queued ICE candidates now that remote description is set
-                while (iceCandidatesQueue.length > 0) {
-                    const candidate = iceCandidatesQueue.shift();
-                    console.log("[Student] Adding queued ICE candidate:", candidate);
-                    await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-                }
-            } catch (e) {
-                console.error("[Student] Error setting remote description from offer or creating answer:", e);
-            }
-        } else {
-          console.warn("[Student] Received offer but peerConnection is null or closed. Ignoring.");
-        }
-    }
-});
-
-socket.on('ice_candidate', async (data) => {
-    if (data.sender_sid !== socket.id) {
-        console.log("[Student] Received ICE candidate:", data.candidate);
-        if (peerConnection && peerConnection.remoteDescription) {
-            try {
-                await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-                console.log("[Student] Added ICE candidate.");
-            } catch (e) {
-                console.error("[Student] Error adding received ICE candidate:", e);
-            }
-        } else {
-            // Queue candidates if remote description is not yet set
-            iceCandidatesQueue.push(data.candidate);
-            console.log("[Student] Queued ICE candidate, remote description not yet set.");
-        }
-    }
-});
-
-socket.on('connect', () => {
-  console.log('[Student] Connected to Socket.IO. SID:', socket.id);
-  socket.emit('join', { room: roomName });
-  // Start WebRTC stream setup (get media, add tracks) after socket is connected
-  startWebRTCStream();
-});
-
-socket.on('disconnect', () => {
-  console.log("[Student] Socket disconnected.");
-  if (peerConnection) peerConnection.close();
-  if (localStream) localStream.getTracks().forEach(track => track.stop());
-  peerConnection = null;
-  localStream = null;
-  iceCandidatesQueue = [];
-});
-
-
-window.addEventListener('beforeunload', () => {
-    console.log("[Student] Page unloading. Closing peerConnection and socket.");
+  try {
+    updateProctoringStatus("Starting proctoring stream...");
+    
+    // Clean up existing connection if any
     if (peerConnection) peerConnection.close();
     if (localStream) localStream.getTracks().forEach(track => track.stop());
-    socket.disconnect();
+
+    // Get user media
+    localStream = await navigator.mediaDevices.getUserMedia({ 
+      video: true, 
+      audio: false 
+    });
+    localVideo.srcObject = localStream;
+
+    // Create peer connection
+    peerConnection = new RTCPeerConnection(iceServers);
+
+    // Add tracks to connection
+    localStream.getTracks().forEach(track => {
+      peerConnection.addTrack(track, localStream);
+    });
+
+    // ICE candidate handler
+    peerConnection.onicecandidate = event => {
+      if (event.candidate) {
+        socket.emit('ice_candidate', { 
+          room: roomName, 
+          candidate: event.candidate,
+          sender_sid: socket.id
+        });
+      }
+    };
+
+    // Connection state handler
+    peerConnection.onconnectionstatechange = () => {
+      console.log("Connection state:", peerConnection.connectionState);
+      switch(peerConnection.connectionState) {
+        case 'connected':
+          updateProctoringStatus("Live proctoring active", "success");
+          reconnectAttempts = 0;
+          break;
+        case 'disconnected':
+        case 'failed':
+          handleProctoringDisconnection();
+          break;
+      }
+    };
+
+    // Handle negotiation needed
+    peerConnection.onnegotiationneeded = async () => {
+      try {
+        makingOffer = true;
+        updateProctoringStatus("Connecting to professor...");
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        socket.emit('offer', { 
+          room: roomName, 
+          offer: peerConnection.localDescription,
+          sender_sid: socket.id
+        });
+      } catch (err) {
+        console.error("Error creating offer:", err);
+        updateProctoringStatus("Error creating stream", "error");
+      } finally {
+        makingOffer = false;
+      }
+    };
+
+    // Handle incoming offers
+    socket.on('offer', async data => {
+      if (data.sender_sid !== socket.id && !isNegotiating) {
+        try {
+          isNegotiating = true;
+          
+          // Only if we're not already making an offer
+          if (!makingOffer) {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+            socket.emit('answer', { 
+              room: roomName, 
+              answer: peerConnection.localDescription,
+              sender_sid: socket.id
+            });
+          }
+        } catch (err) {
+          console.error("Error handling offer:", err);
+          updateProctoringStatus("Error connecting stream", "error");
+        } finally {
+          isNegotiating = false;
+        }
+      }
+    });
+
+    // Handle incoming answers
+    socket.on('answer', async data => {
+      if (data.sender_sid !== socket.id) {
+        try {
+          await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+          updateProctoringStatus("Live proctoring connected", "success");
+        } catch (err) {
+          console.error("Error setting answer:", err);
+          updateProctoringStatus("Error connecting stream", "error");
+        }
+      }
+    });
+
+    // Handle incoming ICE candidates
+    socket.on('ice_candidate', async data => {
+      if (data.sender_sid !== socket.id) {
+        try {
+          await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+        } catch (err) {
+          console.error("Error adding ICE candidate:", err);
+        }
+      }
+    });
+
+    // Handle offer requests
+    socket.on('request_offer', () => {
+      if (peerConnection.signalingState === 'stable') {
+        peerConnection.onnegotiationneeded(); // Trigger negotiation
+      }
+    });
+
+    // Join the room
+    socket.emit('join', { room: roomName });
+
+    // Notify professor when reconnected
+    socket.on('reconnect', () => {
+      console.log("Reconnected to server, notifying professor");
+      socket.emit('student_reconnected', { room: roomName });
+      startWebRTCStream();
+    });
+
+  } catch (err) {
+    console.error("WebRTC error:", err);
+    handleProctoringDisconnection();
+    updateProctoringStatus("Proctoring error: " + err.message, "error");
+  }
+}
+
+function handleProctoringDisconnection() {
+  if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+    updateProctoringStatus("Connection lost. Reconnecting...", "error");
+    setTimeout(startWebRTCStream, 2000 * (reconnectAttempts + 1));
+    reconnectAttempts++;
+  } else {
+    updateProctoringStatus("Proctoring disconnected", "error");
+  }
+}
+
+// Initial connection
+startWebRTCStream();
+
+// Clean up on page unload
+window.addEventListener('beforeunload', () => {
+  if (peerConnection) peerConnection.close();
+  if (localStream) localStream.getTracks().forEach(track => track.stop());
+  socket.disconnect();
 });
 </script>
+<!-- Rest of the file remains the same -->
 
+
+<!-- <script>
+  var cal = "{{calc}}";
+  console.log(cal)
+  if (cal == "1") {
+    document.getElementById('calccheck').style.display = "block"
+  }
+  else {
+    document.getElementById('calccheck').style.display = "none"
+  }
+
+  var proctoringType = "{{proctortype}}";
+  var testId = "{{tid}}";
+  var studentUid = "{{session['uid']}}"
+  var roomName = testId + '-' + studentUid; // Unique room for each student's stream
+
+  console.log("Proctoring Type:", proctoringType);
+  console.log("Room Name for WebRTC:", roomName);
+
+  // --- Common WebRTC Variables ---
+  const socket = io();
+  let peerConnection;
+  let localStream;
+  const iceServers = {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      // { urls: 'turn:your-turn-server.com', username: 'user', credential: 'password' } // Add TURN if needed
+    ]
+  };
+
+  // --- Proctoring Type 0: Automatic Monitoring (Original Logic) ---
+  if (proctoringType === "0") {
+    document.getElementById('videocheck').style.display = "block";
+    document.getElementById('livecheck').style.display = "none"; // Hide WebRTC elements
+
+    startStreaming();
+    captureSnapshot();
+
+  }
+  // --- Proctoring Type 1: Live WebRTC Monitoring ---
+  else if (proctoringType === "1") {
+    document.getElementById('videocheck').style.display = "none"; // Hide automatic monitoring elements
+    document.getElementById('livecheck').style.display = "block";
+
+    const localVideo = document.getElementById('localVideo');
+    const proctoringStatus = document.getElementById('proctoringStatus');
+
+    async function startWebRTCStream() {
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localVideo.srcObject = localStream;
+        proctoringStatus.innerText = 'Proctoring stream active. Connecting...';
+
+        peerConnection = new RTCPeerConnection(iceServers);
+
+        localStream.getTracks().forEach(track => {
+          peerConnection.addTrack(track, localStream);
+        });
+
+        peerConnection.onicecandidate = (event) => {
+          if (event.candidate) {
+            console.log("Sending ICE candidate:", event.candidate);
+            socket.emit('ice_candidate', { room: roomName, candidate: event.candidate });
+          }
+        };
+
+        peerConnection.onnegotiationneeded = async () => {
+          try {
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+            console.log("Sending SDP offer:", offer);
+            socket.emit('offer', { room: roomName, offer: peerConnection.localDescription });
+          } catch (err) {
+            console.error("Error creating or sending offer:", err);
+            proctoringStatus.innerText = 'Error creating stream offer.';
+            proctoringStatus.style.color = 'red';
+          }
+        };
+
+        // Handle incoming answers from the professor
+        socket.on('answer', async (data) => {
+          if (data.sender_sid !== socket.id) { // Ensure it's not our own answer
+            console.log("Received SDP answer:", data.answer);
+            try {
+              await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+              proctoringStatus.innerText = 'Live stream connected.';
+              proctoringStatus.style.color = '#17a2b8'; // student-primary color
+            } catch (e) {
+              console.error("Error setting remote description from answer:", e);
+              proctoringStatus.innerText = 'Error connecting stream.';
+              proctoringStatus.style.color = 'red';
+            }
+          }
+        });
+
+        // Handle incoming ICE candidates from the professor
+        socket.on('ice_candidate', async (data) => {
+          if (data.sender_sid !== socket.id) { // Ensure it's not our own candidate
+            try {
+              console.log("Received ICE candidate:", data.candidate);
+              await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+            } catch (e) {
+              console.error("Error adding received ICE candidate:", e);
+            }
+          }
+        });
+
+        // Join the room
+        socket.emit('join', { room: roomName });
+
+      } catch (err) {
+        console.error("Error accessing media devices or starting WebRTC stream:", err);
+        alert("Could not start live proctoring. Please ensure camera and microphone access are granted.");
+        proctoringStatus.innerText = 'Proctoring failed: ' + err.message;
+        proctoringStatus.style.color = 'red';
+      }
+    }
+
+    startWebRTCStream();
+  }
+
+  // Clean up on page unload for both proctoring types
+  window.addEventListener('beforeunload', () => {
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+    }
+    if (peerConnection) {
+      peerConnection.close();
+    }
+    socket.disconnect();
+  });
+</script> -->
 <footer id="sticky-footer" class="py-4">
   <div class="d-flex text-center justify-content-center align-items-center" role="contentinfo">
     <p class="font-weight-bold font-medium mb-0">Copyright © ExamSheild.ai
@@ -293,3 +473,13 @@ window.addEventListener('beforeunload', () => {
   </div>
 </footer>
 {% endblock %}
+
+
+
+
+
+
+
+
+
+

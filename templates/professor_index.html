@@ -56,8 +56,8 @@
                 <h5>Create New Exam</h5>
                 <p class="text-muted">Set up objective or subjective examinations</p>
                 <div class="action-buttons">
-                    <a href="/create_test" class="btn btn-primary btn-sm me-2">Objective</a>
-                    <a href="/create_test_lqa" class="btn btn-outline-primary btn-sm">Subjective</a>
+                    <a href="/create-test" class="btn btn-primary btn-sm me-2">Objective</a>
+                    <a href="/create-test-lqa" class="btn btn-outline-primary btn-sm">Subjective</a>
                 </div>
             </div>
         </div>
@@ -69,7 +69,7 @@
                 <h5>Monitor Exams</h5>
                 <p class="text-muted">Real-time proctoring and surveillance</p>
                 <div class="action-buttons">
-                    <a href="/monitor_exams" class="btn btn-success btn-sm">View Live</a>
+                    <a href="/livemonitoringtid" class="btn btn-success btn-sm">View Live</a>
                 </div>
             </div>
         </div>
@@ -81,7 +81,7 @@
                 <h5>View Results</h5>
                 <p class="text-muted">Analyze performance and generate reports</p>
                 <div class="action-buttons">
-                    <a href="/exam_results" class="btn btn-info btn-sm">View Reports</a>
+                    <a href="/{{session.email}}/tests-created" class="btn btn-info btn-sm">View Reports</a>
                 </div>
             </div>
         </div>
