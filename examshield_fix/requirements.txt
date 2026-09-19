@@ -1,0 +1,49 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# ExamShield AI — requirements.txt (N4020 / no-AVX compatible)
+# ─────────────────────────────────────────────────────────────────────────────
+# REMOVED: tensorflow, intel-tensorflow, keras, mediapipe, deepface
+#   All of the above require AVX/AVX2 on x86-64 and crash on Celeron N4020.
+#
+# REPLACED WITH:
+#   - face_recognition  (dlib-based, SSE4.1 only — N4020 has it)
+#   - opencv-contrib-python  (DNN backend is pure C++/SSE, no AVX needed)
+#   - dlib              (pulled transitively by face_recognition)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Web framework ─────────────────────────────────────────────────────────────
+Flask==3.0.2
+Flask_WTF==1.2.1
+Flask_MySQLdb==2.0.0
+Flask_Mail==0.9.1
+Flask_Cors==4.0.0
+flask_session
+Flask-SocketIO
+
+# ── Computer vision (NO TensorFlow, NO mediapipe) ────────────────────────────
+# OpenCV DNN backend runs YOLOv3 in pure C++/SSE — works on N4020
+opencv-contrib-python==4.9.0.80
+
+# face_recognition wraps dlib; dlib only requires SSE4.1
+face_recognition==1.3.0
+dlib==19.24.2
+
+# ── Numerics / data ───────────────────────────────────────────────────────────
+numpy<2.0.0
+pandas==2.2.0
+Pillow==10.2.0
+scipy==1.13.0
+pyarrow
+
+# ── App dependencies ──────────────────────────────────────────────────────────
+WTForms==3.1.2
+WTForms-Components==0.10.5
+six==1.16
+Werkzeug==3.0.1
+stripe==8.3.0
+matplotlib==3.8.3
+wget==3.2
+python-docx==1.1.0
+nltk==3.8.1
+coolname==2.2.0
+redis
+python-dotenv

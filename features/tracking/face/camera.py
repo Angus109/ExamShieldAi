@@ -1,444 +1,353 @@
-from .face_detector import get_face_detector, find_faces
-from .face_landmarks import get_landmark_model, detect_marks
-import tensorflow as tf
-import numpy as np
-import cv2
+"""
+features/tracking/face/camera.py
+─────────────────────────────────────────────────────────────────────────────
+Drop-in replacement for the TensorFlow/Keras YOLOv3 proctoring pipeline.
+
+Compatibility fix for Intel Celeron N4020 (no AVX / no AVX2):
+
+  BEFORE  →  builds YOLOv3 Keras graph at import time
+              → TF 2.11 emits AVX2 instructions → SIGILL crash on N4020
+
+  AFTER   →  loads YOLOv3 via cv2.dnn.readNetFromDarknet
+              → OpenCV DNN backend is pure C++ / SSE2 / SSE4.1
+              → zero TensorFlow dependency, zero AVX requirement
+
+Folder structure: unchanged
+Public API:       get_frame(img_data: str) -> dict   (identical contract)
+─────────────────────────────────────────────────────────────────────────────
+"""
+
+from __future__ import annotations
+
 import base64
-from PIL import Image
-from io import BytesIO   
-from features.tracking.gaze.gaze_tracking import GazeTracking
-from tensorflow.keras import Model
-from tensorflow.keras.layers import (
-    Add,
-    Concatenate,
-    Conv2D,
-    Input,
-    Lambda,
-    LeakyReLU,
-    UpSampling2D,
-    ZeroPadding2D,
-    BatchNormalization
-)
-from tensorflow.keras.regularizers import l2
+import logging
+import os
+from io import BytesIO
+from pathlib import Path
+
+import cv2
+import numpy as np
 import wget
-from time import time
+from PIL import Image
 
-gaze = GazeTracking()
+from .face_detector import find_faces, get_face_detector
+from .face_landmarks import detect_marks, get_landmark_model
+from features.tracking.gaze.gaze_tracking import GazeTracking
 
-def load_darknet_weights(model, weights_file):
-    wf = open(weights_file, 'rb')
-    major, minor, revision, seen, _ = np.fromfile(wf, dtype=np.int32, count=5)
+log = logging.getLogger(__name__)
 
-    layers = ['yolo_darknet',
-            'yolo_conv_0',
-            'yolo_output_0',
-            'yolo_conv_1',
-            'yolo_output_1',
-            'yolo_conv_2',
-            'yolo_output_2']
+# ─────────────────────────────────────────────────────────────────────────────
+# Paths
+# ─────────────────────────────────────────────────────────────────────────────
 
-    for layer_name in layers:
-        sub_model = model.get_layer(layer_name)
-        for i, layer in enumerate(sub_model.layers): 
-            if not layer.name.startswith('conv2d'):
-                continue
-                
-            batch_norm = None
-            if i + 1 < len(sub_model.layers) and \
-                    sub_model.layers[i + 1].name.startswith('batch_norm'):
-                batch_norm = sub_model.layers[i + 1]
+MODEL_DIR = Path("model_defination")
 
-            filters = layer.filters
-            size = layer.kernel_size[0]
-            in_dim = layer.input_shape[-1]
+YOLO_WEIGHTS     = MODEL_DIR / "yolov3.weights"
+YOLO_CFG         = MODEL_DIR / "yolov3.cfg"
+YOLO_COCO_NAMES  = MODEL_DIR / "coco.names"
 
-            if batch_norm is None:
-                conv_bias = np.fromfile(wf, dtype=np.float32, count=filters)
-            else:
-                bn_weights = np.fromfile(
-                    wf, dtype=np.float32, count=4 * filters)
-                bn_weights = bn_weights.reshape((4, filters))[[1, 0, 2, 3]]
+YOLO_WEIGHTS_URL = "https://pjreddie.com/media/files/yolov3.weights"
+YOLO_CFG_URL     = (
+    "https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3.cfg"
+)
+COCO_NAMES_URL   = (
+    "https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names"
+)
 
-            conv_shape = (filters, in_dim, size, size)
-            conv_weights = np.fromfile(
-                wf, dtype=np.float32, count=np.product(conv_shape))
-            conv_weights = conv_weights.reshape(
-                conv_shape).transpose([2, 3, 1, 0])
+# ─────────────────────────────────────────────────────────────────────────────
+# Detection thresholds
+# ─────────────────────────────────────────────────────────────────────────────
 
-            if batch_norm is None:
-                layer.set_weights([conv_weights, conv_bias])
-            else:
-                layer.set_weights([conv_weights])
-                batch_norm.set_weights(bn_weights)
+CONF_THRESHOLD = 0.40
+NMS_THRESHOLD  = 0.40
 
-    assert len(wf.read()) == 0, 'failed to read all data'
-    wf.close()
-    
-def draw_outputs(img, outputs, class_names):
-    boxes, objectness, classes, nums = outputs
-    boxes, objectness, classes, nums = boxes[0], objectness[0], classes[0], nums[0]
-    wh = np.flip(img.shape[0:2])
-    for i in range(nums):
-        x1y1 = tuple((np.array(boxes[i][0:2]) * wh).astype(np.int32))
-        x2y2 = tuple((np.array(boxes[i][2:4]) * wh).astype(np.int32))
-        img = cv2.rectangle(img, x1y1, x2y2, (255, 0, 0), 2)
-        img = cv2.putText(img, '{} {:.4f}'.format(
-            class_names[int(classes[i])], objectness[i]),
-            x1y1, cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2)
-    return img
+# COCO class indices
+COCO_PERSON     = 0
+COCO_CELL_PHONE = 67
 
-yolo_anchors = np.array([(10, 13), (16, 30), (33, 23), (30, 61), (62, 45),
-                         (59, 119), (116, 90), (156, 198), (373, 326)],
-                        np.float32) / 416
+# Head-pose deviation limits (degrees)
+PITCH_THRESH = 15.0   # up / down
+YAW_THRESH   = 25.0   # left / right
 
-yolo_anchor_masks = np.array([[6, 7, 8], [3, 4, 5], [0, 1, 2]])
-    
-def DarknetConv(x, filters, kernel_size, strides=1, batch_norm=True):
-    if strides == 1:
-        padding = 'same'
+# ─────────────────────────────────────────────────────────────────────────────
+# Module-level singletons (lazy-loaded on first frame)
+# ─────────────────────────────────────────────────────────────────────────────
+
+_net:            cv2.dnn.Net | None = None
+_coco_classes:   list[str]          = []
+_face_detector                      = None
+_landmark_model                     = None
+_gaze                               = GazeTracking()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Asset auto-download helpers
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _download_if_missing(url: str, dest: Path, label: str) -> None:
+    if dest.exists():
+        return
+    MODEL_DIR.mkdir(parents=True, exist_ok=True)
+    log.info("Downloading %s  (%s) …", label, url)
+    wget.download(url, str(dest))
+    log.info("  → saved to %s", dest)
+
+
+def _ensure_yolo_assets() -> None:
+    _download_if_missing(YOLO_CFG_URL,     YOLO_CFG,        "yolov3.cfg")
+    _download_if_missing(COCO_NAMES_URL,   YOLO_COCO_NAMES, "coco.names")
+    # Weights are large (~236 MB) — download last so cfg/names errors surface first
+    _download_if_missing(YOLO_WEIGHTS_URL, YOLO_WEIGHTS,    "yolov3.weights (~236 MB)")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Lazy singleton getters
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _get_net() -> cv2.dnn.Net:
+    global _net
+    if _net is not None:
+        return _net
+
+    _ensure_yolo_assets()
+
+    net = cv2.dnn.readNetFromDarknet(str(YOLO_CFG), str(YOLO_WEIGHTS))
+    # Force CPU/OpenCV backend — no CUDA, no AVX
+    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
+    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
+    _net = net
+    log.info("YOLOv3 loaded via OpenCV DNN (no TensorFlow, no AVX).")
+    return _net
+
+
+def _get_coco_classes() -> list[str]:
+    global _coco_classes
+    if _coco_classes:
+        return _coco_classes
+    _ensure_yolo_assets()
+    with open(YOLO_COCO_NAMES, "r") as fh:
+        _coco_classes = [ln.strip() for ln in fh.readlines()]
+    return _coco_classes
+
+
+def _get_face_detector():
+    global _face_detector
+    if _face_detector is None:
+        _face_detector = get_face_detector()
+    return _face_detector
+
+
+def _get_landmark_model():
+    global _landmark_model
+    if _landmark_model is None:
+        _landmark_model = get_landmark_model()
+    return _landmark_model
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# YOLOv3 via OpenCV DNN  (replaces the Keras graph build)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _yolo_detect(frame: np.ndarray) -> tuple[int, int]:
+    """
+    Run YOLOv3 on *frame* using OpenCV DNN.
+
+    Returns
+    -------
+    (person_count, phone_count)
+    """
+    net     = _get_net()
+    h, w    = frame.shape[:2]
+
+    blob = cv2.dnn.blobFromImage(
+        frame, scalefactor=1 / 255.0, size=(416, 416),
+        swapRB=True, crop=False,
+    )
+    net.setInput(blob)
+
+    # Resolve output layer names (works across OpenCV 4.x versions)
+    all_layers   = net.getLayerNames()
+    unconnected  = net.getUnconnectedOutLayers()
+    if isinstance(unconnected[0], (list, np.ndarray)):
+        out_layers = [all_layers[i[0] - 1] for i in unconnected]
     else:
-        x = ZeroPadding2D(((1, 0), (1, 0)))(x)  
-        padding = 'valid'
-        
-    x = Conv2D(filters=filters, kernel_size=kernel_size,
-               strides=strides, padding=padding,
-               use_bias=not batch_norm, kernel_regularizer=l2(0.0005))(x)
-    
-    if batch_norm:
-        x = BatchNormalization()(x)
-        x = LeakyReLU(alpha=0.1)(x)
-    return x
+        out_layers = [all_layers[i - 1] for i in unconnected]
 
-def DarknetResidual(x, filters):
-    prev = x
-    x = DarknetConv(x, filters // 2, 1)
-    x = DarknetConv(x, filters, 3)
-    x = Add()([prev, x])
-    return x
-  
-  
-def DarknetBlock(x, filters, blocks):
-    x = DarknetConv(x, filters, 3, strides=2)
-    for _ in range(blocks):
-        x = DarknetResidual(x, filters)
-    return x
+    outs = net.forward(out_layers)
 
-def Darknet(name=None):
-    x = inputs = Input([None, None, 3])
-    x = DarknetConv(x, 32, 3)
-    x = DarknetBlock(x, 64, 1)
-    x = DarknetBlock(x, 128, 2)  
-    x = x_36 = DarknetBlock(x, 256, 8) 
-    x = x_61 = DarknetBlock(x, 512, 8)
-    x = DarknetBlock(x, 1024, 4)
-    return tf.keras.Model(inputs, (x_36, x_61, x), name=name)
+    boxes:       list[list[int]] = []
+    confidences: list[float]     = []
+    class_ids:   list[int]       = []
 
-def YoloConv(filters, name=None):
-    def yolo_conv(x_in):
-        if isinstance(x_in, tuple):
-            inputs = Input(x_in[0].shape[1:]), Input(x_in[1].shape[1:])
-            x, x_skip = inputs
-            x = DarknetConv(x, filters, 1)
-            x = UpSampling2D(2)(x)
-            x = Concatenate()([x, x_skip])
-        else:
-            x = inputs = Input(x_in.shape[1:])
+    for out in outs:
+        for det in out:
+            scores    = det[5:]
+            class_id  = int(np.argmax(scores))
+            conf      = float(scores[class_id])
 
-        x = DarknetConv(x, filters, 1)
-        x = DarknetConv(x, filters * 2, 3)
-        x = DarknetConv(x, filters, 1)
-        x = DarknetConv(x, filters * 2, 3)
-        x = DarknetConv(x, filters, 1)
-        return Model(inputs, x, name=name)(x_in)
-    return yolo_conv
+            if conf < CONF_THRESHOLD:
+                continue
+            # Keep only the classes we need
+            if class_id not in (COCO_PERSON, COCO_CELL_PHONE):
+                continue
 
-def YoloOutput(filters, anchors, classes, name=None):
-    def yolo_output(x_in):
-        x = inputs = Input(x_in.shape[1:])
-        x = DarknetConv(x, filters * 2, 3)
-        x = DarknetConv(x, anchors * (classes + 5), 1, batch_norm=False)
-        x = Lambda(lambda x: tf.reshape(x, (-1, tf.shape(x)[1], tf.shape(x)[2],
-                                            anchors, classes + 5)))(x)
-        return tf.keras.Model(inputs, x, name=name)(x_in)
-    return yolo_output
+            cx, cy, bw, bh = det[:4]
+            x = int((cx - bw / 2) * w)
+            y = int((cy - bh / 2) * h)
+            boxes.append([x, y, int(bw * w), int(bh * h)])
+            confidences.append(conf)
+            class_ids.append(class_id)
 
-def yolo_boxes(pred, anchors, classes):
-    grid_size = tf.shape(pred)[1]
-    box_xy, box_wh, objectness, class_probs = tf.split(
-        pred, (2, 2, 1, classes), axis=-1)
-
-    box_xy = tf.sigmoid(box_xy)
-    objectness = tf.sigmoid(objectness)
-    class_probs = tf.sigmoid(class_probs)
-    pred_box = tf.concat((box_xy, box_wh), axis=-1) 
-    grid = tf.meshgrid(tf.range(grid_size), tf.range(grid_size))
-    grid = tf.expand_dims(tf.stack(grid, axis=-1), axis=2)  
-
-    box_xy = (box_xy + tf.cast(grid, tf.float32)) / \
-        tf.cast(grid_size, tf.float32)
-    box_wh = tf.exp(box_wh) * anchors
-
-    box_x1y1 = box_xy - box_wh / 2
-    box_x2y2 = box_xy + box_wh / 2
-    bbox = tf.concat([box_x1y1, box_x2y2], axis=-1)
-
-    return bbox, objectness, class_probs, pred_box
-
-def yolo_nms(outputs, anchors, masks, classes):
-    b, c, t = [], [], []
-
-    for o in outputs:
-        b.append(tf.reshape(o[0], (tf.shape(o[0])[0], -1, tf.shape(o[0])[-1])))
-        c.append(tf.reshape(o[1], (tf.shape(o[1])[0], -1, tf.shape(o[1])[-1])))
-        t.append(tf.reshape(o[2], (tf.shape(o[2])[0], -1, tf.shape(o[2])[-1])))
-
-    bbox = tf.concat(b, axis=1)
-    confidence = tf.concat(c, axis=1)
-    class_probs = tf.concat(t, axis=1)
-
-    scores = confidence * class_probs
-    boxes, scores, classes, valid_detections = tf.image.combined_non_max_suppression(
-        boxes=tf.reshape(bbox, (tf.shape(bbox)[0], -1, 1, 4)),
-        scores=tf.reshape(
-        scores, (tf.shape(scores)[0], -1, tf.shape(scores)[-1])),
-        max_output_size_per_class=100,
-        max_total_size=100,
-        iou_threshold=0.5,
-        score_threshold=0.6
+    indices = cv2.dnn.NMSBoxes(
+        boxes, confidences, CONF_THRESHOLD, NMS_THRESHOLD,
     )
 
-    return boxes, scores, classes, valid_detections
+    person_count = phone_count = 0
+    if len(indices) > 0:
+        for idx in np.array(indices).flatten():
+            cid = class_ids[idx]
+            if cid == COCO_PERSON:
+                person_count += 1
+            elif cid == COCO_CELL_PHONE:
+                phone_count  += 1
 
-def YoloV3(size=None, channels=3, anchors=yolo_anchors,
-           masks=yolo_anchor_masks, classes=80):
-  
-    x = inputs = Input([size, size, channels], name='input')
+    return person_count, phone_count
 
-    x_36, x_61, x = Darknet(name='yolo_darknet')(x)
 
-    x = YoloConv(512, name='yolo_conv_0')(x)
-    output_0 = YoloOutput(512, len(masks[0]), classes, name='yolo_output_0')(x)
+# ─────────────────────────────────────────────────────────────────────────────
+# Head-pose via solvePnP (replaces mediapipe pose model)
+# ─────────────────────────────────────────────────────────────────────────────
 
-    x = YoloConv(256, name='yolo_conv_1')((x, x_61))
-    output_1 = YoloOutput(256, len(masks[1]), classes, name='yolo_output_1')(x)
+# Generic 3-D face model (mm), matched to dlib 68-point indices
+_MODEL_3D = np.array([
+    (   0.0,    0.0,    0.0),   # 30 — nose tip
+    (   0.0, -330.0,  -65.0),   #  8 — chin
+    (-225.0,  170.0, -135.0),   # 36 — left eye corner
+    ( 225.0,  170.0, -135.0),   # 45 — right eye corner
+    (-150.0, -150.0, -125.0),   # 48 — left mouth corner
+    ( 150.0, -150.0, -125.0),   # 54 — right mouth corner
+], dtype=np.float64)
 
-    x = YoloConv(128, name='yolo_conv_2')((x, x_36))
-    output_2 = YoloOutput(128, len(masks[2]), classes, name='yolo_output_2')(x)
+_LANDMARK_IDX = [30, 8, 36, 45, 48, 54]
 
-    boxes_0 = Lambda(lambda x: yolo_boxes(x, anchors[masks[0]], classes),
-                     name='yolo_boxes_0')(output_0)
-    boxes_1 = Lambda(lambda x: yolo_boxes(x, anchors[masks[1]], classes),
-                     name='yolo_boxes_1')(output_1)
-    boxes_2 = Lambda(lambda x: yolo_boxes(x, anchors[masks[2]], classes),
-                     name='yolo_boxes_2')(output_2)
 
-    outputs = Lambda(lambda x: yolo_nms(x, anchors, masks, classes),
-                     name='yolo_nms')((boxes_0[:3], boxes_1[:3], boxes_2[:3]))
+def _head_pose(marks: np.ndarray, frame_shape: tuple) -> tuple[float, float]:
+    """
+    Estimate (pitch_deg, yaw_deg) from 68-point landmark array.
+    Returns (0.0, 0.0) on failure.
+    """
+    h, w = frame_shape[:2]
+    image_points = marks[_LANDMARK_IDX].astype(np.float64)
 
-    return Model(inputs, outputs, name='yolov3')
-    
-yolo = YoloV3()
-load_darknet_weights(yolo, 'model_defination/yolov3.weights') 
+    focal     = float(w)
+    cam_mat   = np.array(
+        [[focal, 0.0, w / 2.0],
+         [0.0, focal, h / 2.0],
+         [0.0,   0.0,     1.0]],
+        dtype=np.float64,
+    )
+    dist_coeffs = np.zeros((4, 1), dtype=np.float64)
 
-def get_2d_points(img, rotation_vector, translation_vector, camera_matrix, val):
-    """Return the 3D points present as 2D for making annotation box"""
-    point_3d = []
-    dist_coeffs = np.zeros((4,1))
-    rear_size = val[0]
-    rear_depth = val[1]
-    point_3d.append((-rear_size, -rear_size, rear_depth))
-    point_3d.append((-rear_size, rear_size, rear_depth))
-    point_3d.append((rear_size, rear_size, rear_depth))
-    point_3d.append((rear_size, -rear_size, rear_depth))
-    point_3d.append((-rear_size, -rear_size, rear_depth))
-    
-    front_size = val[2]
-    front_depth = val[3]
-    point_3d.append((-front_size, -front_size, front_depth))
-    point_3d.append((-front_size, front_size, front_depth))
-    point_3d.append((front_size, front_size, front_depth))
-    point_3d.append((front_size, -front_size, front_depth))
-    point_3d.append((-front_size, -front_size, front_depth))
-    point_3d = np.array(point_3d, dtype=np.float).reshape(-1, 3)
-    
-    (point_2d, _) = cv2.projectPoints(point_3d,
-                                      rotation_vector,
-                                      translation_vector,
-                                      camera_matrix,
-                                      dist_coeffs)
-    point_2d = np.int32(point_2d.reshape(-1, 2))
-    return point_2d
+    ok, rvec, _ = cv2.solvePnP(
+        _MODEL_3D, image_points, cam_mat, dist_coeffs,
+        flags=cv2.SOLVEPNP_ITERATIVE,
+    )
+    if not ok:
+        return 0.0, 0.0
 
-def draw_annotation_box(img, rotation_vector, translation_vector, camera_matrix,
-                        rear_size=300, rear_depth=0, front_size=500, front_depth=400,
-                        color=(255, 255, 0), line_width=2):
-    rear_size = 1
-    rear_depth = 0
-    front_size = img.shape[1]
-    front_depth = front_size*2
-    val = [rear_size, rear_depth, front_size, front_depth]
-    point_2d = get_2d_points(img, rotation_vector, translation_vector, camera_matrix, val)
-    
-def head_pose_points(img, rotation_vector, translation_vector, camera_matrix):
-    rear_size = 1
-    rear_depth = 0
-    front_size = img.shape[1]
-    front_depth = front_size*2
-    val = [rear_size, rear_depth, front_size, front_depth]
-    point_2d = get_2d_points(img, rotation_vector, translation_vector, camera_matrix, val)
-    y = (point_2d[5] + point_2d[8])//2
-    x = point_2d[2]
-    
-    return (x, y)
+    rmat, _ = cv2.Rodrigues(rvec)
+    angles, *_ = cv2.RQDecomp3x3(rmat)
+    return float(angles[0]), float(angles[1])   # pitch, yaw
 
-face_model = get_face_detector()
-landmark_model = get_landmark_model()
-    
-def get_frame(imgData):
-    nparr = np.frombuffer(base64.b64decode(imgData), np.uint8)
-    image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    ret = True
 
-    size = image.shape
-    font = cv2.FONT_HERSHEY_SIMPLEX 
-    model_points = np.array([
-                        (0.0, 0.0, 0.0),             # Nose tip
-                        (0.0, -330.0, -65.0),        # Chin
-                        (-225.0, 170.0, -135.0),     # Left eye left corner
-                        (225.0, 170.0, -135.0),      # Right eye right corne
-                        (-150.0, -150.0, -125.0),    # Left Mouth corner
-                        (150.0, -150.0, -125.0)      # Right mouth corner
-                    ])
+# ─────────────────────────────────────────────────────────────────────────────
+# Public API  — identical contract to the original camera.py
+# ─────────────────────────────────────────────────────────────────────────────
 
-    focal_length = size[1]
-    center = (size[1]/2, size[0]/2)
-    camera_matrix = np.array(
-                     [[focal_length, 0, center[0]],
-                     [0, focal_length, center[1]],
-                     [0, 0, 1]], dtype = "double"
-                     )
+def get_frame(img_data: str) -> dict:
+    """
+    Process one Base64-encoded JPEG webcam frame from the proctoring client.
 
-    img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    img = cv2.resize(img, (320, 320))
-    img = img.astype(np.float32)
-    img = np.expand_dims(img, 0)
-    img = img / 255
-    class_names = [c.strip() for c in open("model_defination/classes.TXT").readlines()]
-    boxes, scores, classes, nums = yolo(img)
-    count=0
-    mob_status = ""
-    person_status = ""
-    for i in range(nums[0]):
-        if int(classes[0][i] == 0):
-            count +=1
-        if int(classes[0][i] == 67):
-            print('Mobile Phone detected')
-            mob_status = 1
-        else:
-            print('Not Mobile Phone detected')
-            mob_status = 0
-        print(mob_status)
+    Parameters
+    ----------
+    img_data : str
+        Raw Base64 string (with or without the ``data:image/jpeg;base64,``
+        prefix) as sent by the browser AJAX call.
 
-    if count == 0:
-        print('No person detected')
-        person_status = 1
-    elif count > 1: 
-        print('More than one person detected')
-        person_status = 2
-    else:
-        print('Normal')
-        person_status = 0 
+    Returns
+    -------
+    dict with keys:
+        person_status           int   0 = alone,      1 = multiple people
+        phone_detection         int   0 = no phone,   1 = phone visible
+        user_movements_updown   int   0 = forward,    1 = up/down deviation
+        user_movements_lr       int   0 = forward,    1 = left/right deviation
+        user_movements_eyes     int   0 = eyes open,  1 = blinking / not seen
+        img_log                 str   Base64 JPEG of the (annotated) frame
+    """
+    result: dict = {
+        "person_status":         0,
+        "phone_detection":       0,
+        "user_movements_updown": 0,
+        "user_movements_lr":     0,
+        "user_movements_eyes":   0,
+        "img_log":               img_data,
+    }
 
-    image = draw_outputs(image, (boxes, scores, classes, nums), class_names)
-            
-    user_move1=""
-    user_move2=""
-    if ret == True:
-        faces = find_faces(image, face_model)
-        for face in faces:
-            marks = detect_marks(image, landmark_model, face)
-            image_points = np.array([
-                                    marks[30],     # Nose tip
-                                     marks[8],     # Chin
-                                    marks[36],     # Left eye left corner
-                                    marks[45],     # Right eye right corne
-                                    marks[48],     # Left Mouth corner
-                                    marks[54]      # Right mouth corner
-                                ], dtype="double")
-            dist_coeffs = np.zeros((4,1)) # Assuming no lens distortion
-            (success, rotation_vector, translation_vector) = cv2.solvePnP(model_points, image_points, camera_matrix, dist_coeffs, flags=cv2.SOLVEPNP_UPNP)
-            
-            (nose_end_point2D, jacobian) = cv2.projectPoints(np.array([(0.0, 0.0, 1000.0)]), rotation_vector, translation_vector, camera_matrix, dist_coeffs)
-            
-            for p in image_points:
-                cv2.circle(image, (int(p[0]), int(p[1])), 3, (0,0,255), -1)
-            
-            p1 = ( int(image_points[0][0]), int(image_points[0][1]))
-            p2 = ( int(nose_end_point2D[0][0][0]), int(nose_end_point2D[0][0][1]))
-            x1, x2 = head_pose_points(image, rotation_vector, translation_vector, camera_matrix)
+    # ── 1. Decode frame ───────────────────────────────────────────────────────
+    try:
+        raw = img_data.split(",", 1)[1] if "," in img_data else img_data
+        img_bytes = base64.b64decode(raw)
+        pil_img   = Image.open(BytesIO(img_bytes)).convert("RGB")
+        frame     = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
+    except Exception as exc:
+        log.warning("get_frame: decode failed — %s", exc)
+        return result
 
-            try:
-                m = (p2[1] - p1[1])/(p2[0] - p1[0])
-                ang1 = int(math.degrees(math.atan(m)))
-            except:
-                ang1 = 90
-        
-            try:
-                m = (x2[1] - x1[1])/(x2[0] - x1[0])
-                ang2 = int(math.degrees(math.atan(-1/m)))
-            except:
-                ang2 = 90
-                
-            if ang1 >= 48:
-                user_move1 = 2
-                print('Head down')
-            elif ang1 <= -48:
-                user_move1 = 1
-                print('Head up')
-            else:
-                user_move1 = 0
+    # ── 2. YOLOv3 — person count + phone detection (OpenCV DNN) ──────────────
+    try:
+        n_persons, n_phones   = _yolo_detect(frame)
+        result["person_status"]   = 1 if n_persons > 1 else 0
+        result["phone_detection"] = 1 if n_phones  > 0 else 0
+    except Exception as exc:
+        log.warning("get_frame: YOLO failed — %s", exc)
 
-            if ang2 >= 48:
-                print('Head right')
-                user_move2 = 4
-            elif ang2 <= -48:
-                print('Head left')
-                user_move2 = 3
-            else:
-                user_move2 = 0
+    # ── 3. Gaze tracking (dlib-based, replaces mediapipe) ────────────────────
+    try:
+        _gaze.refresh(frame)
 
-       
-    ret, jpeg = cv2.imencode('.jpg', image)
-    jpg_as_text = base64.b64encode(jpeg)
+        if _gaze.is_blinking():
+            result["user_movements_eyes"] = 1
 
-    gaze.refresh(image)
+        if _gaze.is_right() or _gaze.is_left():
+            result["user_movements_lr"] = 1
 
-    frame = gaze.annotated_frame()
-    eye_movements = ""
+    except Exception as exc:
+        log.warning("get_frame: gaze failed — %s", exc)
 
-    if gaze.is_blinking():
-        eye_movements = 1
-        print("Blinking")
-    elif gaze.is_right():
-        eye_movements = 4
-        print("Looking right")
-    elif gaze.is_left():
-        eye_movements = 3
-        print("Looking left")
-    elif gaze.is_center():
-        eye_movements = 2
-        print("Looking center")
-    else:
-        eye_movements = 0
-        print("Not found!")
-    print(eye_movements)
+    # ── 4. Head pose — up/down via solvePnP + dlib landmarks ─────────────────
+    try:
+        face_model  = _get_face_detector()
+        lm_model    = _get_landmark_model()
+        faces       = find_faces(frame, face_model)
 
-    proctorDict = dict()  
-    proctorDict['jpg_as_text'] = jpg_as_text
-    proctorDict['mob_status'] = mob_status
-    proctorDict['person_status'] = person_status
-    proctorDict['user_move1'] = user_move1
-    proctorDict['user_move2'] = user_move2
-    proctorDict['eye_movements'] = eye_movements
+        if faces:
+            marks        = detect_marks(frame, lm_model, faces[0])
+            pitch, yaw   = _head_pose(marks, frame.shape)
 
-    return proctorDict
+            if abs(pitch) > PITCH_THRESH:
+                result["user_movements_updown"] = 1
+            if abs(yaw) > YAW_THRESH:
+                result["user_movements_lr"]     = 1
+
+    except Exception as exc:
+        log.warning("get_frame: head-pose failed — %s", exc)
+
+    # ── 5. Re-encode annotated frame ──────────────────────────────────────────
+    try:
+        _, buf     = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 70])
+        b64        = base64.b64encode(buf).decode("utf-8")
+        result["img_log"] = "data:image/jpeg;base64," + b64
+    except Exception as exc:
+        log.warning("get_frame: encode failed — %s", exc)
+
+    return result

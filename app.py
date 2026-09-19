@@ -27,10 +27,12 @@ from flask_session import Session
 from redis import Redis
 from flask_cors import CORS, cross_origin
 import features.tracking.face.camera as camera
-from deepface import DeepFace
+import face_recognition  # replaces DeepFace (AVX-free)
 from dotenv import load_dotenv
 import os
 from flask_socketio import SocketIO, emit, join_room, leave_room
+
+
 
 load_dotenv()
 app = Flask(__name__)
@@ -59,9 +61,12 @@ STRIPE_PUBLIC=os.getenv('STRIPE_PUBLISHABLE_KEY')
 print(STRIPE_PUBLIC)
 
 
+
 APP_SECRET=os.getenv('APP_SECRET')
 MAIL_SENDER=os.getenv('MAIL_SENDER')
 APP_DOMAIN=os.getenv('APP_DOMAIN')
+
+print(MAIL_SENDER)
 
 app.config['MYSQL_HOST'] = DB_HOST
 app.config['MYSQL_USER'] = DB_USER
@@ -70,10 +75,13 @@ app.config['MYSQL_PASSWORD'] = DB_PASSWORD
 app.config['MYSQL_DB'] = DB_NAME
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
-app.config['MAIL_SERVER']=MAIL_SERVER
-app.config['MAIL_PORT'] = MAIL_PORT
+
+
+app.config['MAIL_SERVER']= MAIL_SERVER
+app.config['MAIL_PORT'] = 465
 app.config['MAIL_USERNAME'] = MAIL_USERNAME
 app.config['MAIL_PASSWORD'] = MAIL_PASSWORD
+
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 
@@ -723,14 +731,22 @@ def identityVerify():
                 flash('Captured image is blurry. Please retake a clearer photo.', 'error')
                 return render_template('identity-verify.html')
 
-            # Convert to grayscale for DeepFace
-            captured_cv_gray = cv2.cvtColor(captured_cv_color, cv2.COLOR_BGR2GRAY)
-            stored_cv_gray = cv2.cvtColor(stored_cv, cv2.COLOR_BGR2GRAY)
+            # face_recognition uses RGB (dlib backend, SSE4.1 — works on N4020)
+            captured_rgb = cv2.cvtColor(captured_cv_color, cv2.COLOR_BGR2RGB)
+            stored_rgb   = cv2.cvtColor(stored_cv,         cv2.COLOR_BGR2RGB)
 
-            # Perform face verification
-            result = DeepFace.verify(captured_cv_gray, stored_cv_gray, enforce_detection=True)
+            captured_encs = face_recognition.face_encodings(captured_rgb)
+            stored_encs   = face_recognition.face_encodings(stored_rgb)
+
+            if not captured_encs or not stored_encs:
+                raise ValueError("No face detected in one or both images.")
+
+            match  = face_recognition.compare_faces(
+                [stored_encs[0]], captured_encs[0], tolerance=0.55
+            )
+            result = {"verified": match[0]}
             print(result)
-            
+
             if result['verified']:
                 session['logged_in'] = True
                 session['uid'] = session.get('login_user_id')
@@ -2258,4 +2274,4 @@ def test_generate():
 			return None
 
 if __name__ == "__main__":
-	app.run(host = "0.0.0.0",debug=True)
+	app.run(host = "0.0.0.0", port=5000, debug=True)
