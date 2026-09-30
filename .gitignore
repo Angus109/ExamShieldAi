@@ -22,3 +22,4 @@ SCREENSHOTS
 saved_model.pb
 _pycache_
 .env
+model_defination/
