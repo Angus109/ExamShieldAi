@@ -26,3 +26,5 @@ model_defination/
 
 __pycache__/
 *.pyc
+
+.env
