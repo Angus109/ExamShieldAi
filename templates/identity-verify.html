@@ -496,33 +496,83 @@
         });
 
         // Start Camera Function
-        async function startCamera() {
-            try {
-                updateStatus('loading', '<span class="loading-spinner"></span> Starting camera...');
-                
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        width: { ideal: 640 }, 
-                        height: { ideal: 480 },
-                        facingMode: 'user'
-                    } 
-                });
-                
-                video.srcObject = stream;
-                
-                video.onloadedmetadata = () => {
-                    video.play();
-                    updateStatus('active', 'Camera ready - Position your face for verification');
-                    capturePhotoBtn.disabled = false;
-                    faceGuide.style.display = 'block';
-                };
-                
-            } catch (error) {
-                console.error('Error accessing camera:', error);
-                updateStatus('inactive', 'Camera access denied or not available');
-                showCameraError(error);
-            }
+       async function startCamera() {
+    try {
+        updateStatus(
+            'loading',
+            '<span class="loading-spinner"></span> Starting camera...'
+        );
+
+        // Check browser support / secure context first
+        if (!window.isSecureContext) {
+            throw new Error(
+                'Camera access requires HTTPS or localhost. ' +
+                'Please open this page using https:// or http://localhost:5000.'
+            );
         }
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error(
+                'Camera API is not available in this browser/context.'
+            );
+        }
+
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                width: { ideal: 640 },
+                height: { ideal: 480 },
+                facingMode: 'user'
+            },
+            audio: false
+        });
+
+        video.srcObject = stream;
+
+        video.onloadedmetadata = async () => {
+            try {
+                await video.play();
+                updateStatus(
+                    'active',
+                    'Camera ready - Position your face for verification'
+                );
+                capturePhotoBtn.disabled = false;
+                faceGuide.style.display = 'block';
+            } catch (err) {
+                console.error('Video playback error:', err);
+                throw err;
+            }
+        };
+
+    } catch (error) {
+        console.error('Error accessing camera:', error);
+
+        let message = 'Unable to access camera. ';
+
+        switch (error.name) {
+            case 'NotAllowedError':
+                message += 'Please allow camera permission in your browser.';
+                break;
+
+            case 'NotFoundError':
+                message += 'No camera was found on this device.';
+                break;
+
+            case 'NotReadableError':
+                message += 'The camera is already being used by another application.';
+                break;
+
+            case 'OverconstrainedError':
+                message += 'The requested camera settings are not supported.';
+                break;
+
+            default:
+                message += error.message || 'Unknown camera error.';
+        }
+
+        updateStatus('inactive', message);
+        showCameraError(error);
+    }
+}
 
         // Update Status Function
         function updateStatus(type, message) {

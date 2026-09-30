@@ -1,8 +1,12 @@
 {% extends 'exam_layout.html' %}
 {% block body %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script type="text/javascript"> var answers = "{{answers}}";</script>
-<script>var tid = "{{tid}}";</script>
+<script>
+  var tid = "{{tid}}";
+  var proctoringType = "{{proctortype}}"; // Add this line
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
 
 <main>
@@ -316,15 +320,18 @@ function handleProctoringDisconnection() {
   }
 }
 
-// Initial connection
-startWebRTCStream();
+// Only initialize WebRTC if proctoring type is Live Monitoring (1)
+if (proctoringType === "1") {
+  startWebRTCStream();
 
-// Clean up on page unload
-window.addEventListener('beforeunload', () => {
-  if (peerConnection) peerConnection.close();
-  if (localStream) localStream.getTracks().forEach(track => track.stop());
-  socket.disconnect();
-});
+  // Clean up on page unload
+  window.addEventListener('beforeunload', () => {
+    if (peerConnection) peerConnection.close();
+    if (localStream) localStream.getTracks().forEach(track => track.stop());
+    socket.disconnect();
+  });
+}
+
 </script>
 <!-- Rest of the file remains the same -->
 

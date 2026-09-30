@@ -70,7 +70,7 @@ print(MAIL_SENDER)
 
 app.config['MYSQL_HOST'] = DB_HOST
 app.config['MYSQL_USER'] = DB_USER
-app.config['MYSQL_PORT'] = 3309
+app.config['MYSQL_PORT'] = 3306
 app.config['MYSQL_PASSWORD'] = DB_PASSWORD
 app.config['MYSQL_DB'] = DB_NAME
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
@@ -109,7 +109,7 @@ mail = Mail(app)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-app.secret_key= APP_SECRET
+app.secret_key = APP_SECRET if APP_SECRET else 'your-super-secret-development-key'
 
 mysql = MySQL(app)
 
@@ -227,22 +227,34 @@ def video_feed():
 		imgData = request.form['data[imgData]']
 		testid = request.form['data[testid]']
 		voice_db = request.form['data[voice_db]']
-		proctorData = camera.get_frame(imgData)
-		jpg_as_text = proctorData['jpg_as_text']
-		mob_status =proctorData['mob_status']
-		person_status = proctorData['person_status']
-		user_move1 = proctorData['user_move1']
-		user_move2 = proctorData['user_move2']
-		eye_movements = proctorData['eye_movements']
-		cur = mysql.connection.cursor()
-		results = cur.execute('INSERT INTO proctoring_log (email, name, test_id, voice_db, img_log, user_movements_updown, user_movements_lr, user_movements_eyes, phone_detection, person_status, uid) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-			(dict(session)['email'], dict(session)['name'], testid, voice_db, jpg_as_text, user_move1, user_move2, eye_movements, mob_status, person_status,dict(session)['uid']))
-		mysql.connection.commit()
-		cur.close()
-		if(results > 0):
-			return "recorded image of video"
-		else:
-			return "error in video"
+		
+		try:
+			proctorData = camera.get_frame(imgData)
+			
+			# Fallback dictionary safety check if get_frame fails or returns partial data
+			if not proctorData or 'jpg_as_text' not in proctorData:
+				return jsonify({"status": "error", "msg": "Proctoring frame processing failed"}), 400
+
+			jpg_as_text = proctorData.get('jpg_as_text', '')
+			mob_status = proctorData.get('mob_status', 0)
+			person_status = proctorData.get('person_status', 0)
+			user_move1 = proctorData.get('user_move1', 0)
+			user_move2 = proctorData.get('user_move2', 0)
+			eye_movements = proctorData.get('eye_movements', 0)
+
+			cur = mysql.connection.cursor()
+			results = cur.execute('INSERT INTO proctoring_log (email, name, test_id, voice_db, img_log, user_movements_updown, user_movements_lr, user_movements_eyes, phone_detection, person_status, uid) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+				(dict(session)['email'], dict(session)['name'], testid, voice_db, jpg_as_text, user_move1, user_move2, eye_movements, mob_status, person_status, dict(session)['uid']))
+			mysql.connection.commit()
+			cur.close()
+			
+			if results > 0:
+				return "recorded image of video"
+			else:
+				return "error in video", 500
+		except Exception as e:
+			print(f"Error in video_feed: {e}")
+			return jsonify({"status": "error", "msg": str(e)}), 500
 
 @app.route('/window_event', methods=['GET','POST'])
 @user_role_student
@@ -727,7 +739,7 @@ def identityVerify():
             stored_cv = cv2.imdecode(stored_np, cv2.IMREAD_COLOR)
             
             # Check if captured image is blurry
-            if is_image_blurry(captured_cv_color, threshold=120):
+            if is_image_blurry(captured_cv_color, threshold=30):
                 flash('Captured image is blurry. Please retake a clearer photo.', 'error')
                 return render_template('identity-verify.html')
 
@@ -882,7 +894,7 @@ class QAUploadForm(FlaskForm):
 		if datetime.strptime(str(form.start_date.data) + " " + str(form.start_time.data),"%Y-%m-%d %H:%M:%S") < datetime.now():
 			raise ValidationError("Start date and time must not be earlier than current")
 
-@app.route('/create_test_lqa', methods = ['GET', 'POST'])
+@app.route('/create-test-lqa', methods = ['GET', 'POST'])
 @user_role_professor
 def create_test_lqa():
 	form = QAUploadForm()
@@ -958,6 +970,51 @@ class TestForm(Form):
 	password = PasswordField('Exam Password')
 	img_hidden_form = HiddenField(label=(''))
 
+# @app.route('/create-test', methods = ['GET', 'POST'])
+# @user_role_professor
+# def create_test():
+# 	form = UploadForm()
+# 	if request.method == 'POST' and form.validate_on_submit():
+# 		test_id = generate_slug(2)
+# 		filename = secure_filename(form.doc.data.filename)
+# 		filestream = form.doc.data
+# 		filestream.seek(0)
+# 		ef = pd.read_csv(filestream)
+# 		fields = ['qid','q','a','b','c','d','ans','marks']
+# 		df = pd.DataFrame(ef, columns = fields)
+# 		cur = mysql.connection.cursor()
+# 		ecc = examcreditscheck()
+# 		if ecc:
+# 			for row in df.index:
+# 				cur.execute('INSERT INTO questions(test_id,qid,q,a,b,c,d,ans,marks,uid) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', (test_id, df['qid'][row], df['q'][row], df['a'][row], df['b'][row], df['c'][row], df['d'][row], df['ans'][row], df['marks'][row], session['uid']))
+# 				cur.connection.commit()
+
+# 			start_date = form.start_date.data
+# 			end_date = form.end_date.data
+# 			start_time = form.start_time.data
+# 			end_time = form.end_time.data
+# 			start_date_time = str(start_date) + " " + str(start_time)
+# 			end_date_time = str(end_date) + " " + str(end_time)
+# 			neg_mark = int(form.neg_mark.data)
+# 			calc = int(form.calc.data)
+# 			duration = int(form.duration.data)*60
+# 			password = form.password.data
+# 			subject = form.subject.data
+# 			topic = form.topic.data
+# 			proctor_type = form.proctor_type.data
+# 			cur.execute('INSERT INTO teachers (email, test_id, test_type, start, end, duration, show_ans, password, subject, topic, neg_marks, calc,proctoring_type, uid) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+# 				(dict(session)['email'], test_id, "objective", start_date_time, end_date_time, duration, 1, password, subject, topic, neg_mark, calc, proctor_type, session['uid']))
+# 			mysql.connection.commit()
+# 			cur.execute('UPDATE users SET examcredits = examcredits-1 where email = %s and uid = %s', (session['email'],session['uid']))
+# 			mysql.connection.commit()
+# 			cur.close()
+# 			flash(f'Exam ID: {test_id}', 'success')
+# 			return redirect(url_for('professor_index'))
+# 		else:
+# 			flash("No exam credits points are found! Please pay it!")
+# 			return redirect(url_for('professor_index'))
+# 	return render_template('create_test.html' , form = form)
+
 @app.route('/create-test', methods = ['GET', 'POST'])
 @user_role_professor
 def create_test():
@@ -970,11 +1027,20 @@ def create_test():
 		ef = pd.read_csv(filestream)
 		fields = ['qid','q','a','b','c','d','ans','marks']
 		df = pd.DataFrame(ef, columns = fields)
+		
+		# Fix: Fill missing marks with 0 (or a default integer) and handle other NaN cells
+		df['marks'] = df['marks'].fillna(0)
+		df = df.where(pd.notnull(df), None)
+		
 		cur = mysql.connection.cursor()
 		ecc = examcreditscheck()
 		if ecc:
 			for row in df.index:
-				cur.execute('INSERT INTO questions(test_id,qid,q,a,b,c,d,ans,marks,uid) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', (test_id, df['qid'][row], df['q'][row], df['a'][row], df['b'][row], df['c'][row], df['d'][row], df['ans'][row], df['marks'][row], session['uid']))
+				# Ensure marks is explicitly cast to int, and handle text fields safely if they can be None
+				marks_val = int(df['marks'][row]) if df['marks'][row] is not None else 0
+				
+				cur.execute('INSERT INTO questions(test_id,qid,q,a,b,c,d,ans,marks,uid) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', 
+            (test_id, df['qid'][row], df['q'][row], df['a'][row], df['b'][row], df['c'][row], df['d'][row], df['ans'][row], marks_val, session['uid']))
 				cur.connection.commit()
 
 			start_date = form.start_date.data
@@ -1018,6 +1084,7 @@ class PracUploadForm(FlaskForm):
 	('39', 'Scala'),('85', 'Swift'),('57', 'TypeScript')])
 	password = PasswordField('Exam Password', [validators.Length(min=3, max=10)])
 	proctor_type = RadioField('Proctoring Type', choices=[('0','Automatic Monitoring'),('1','Live Monitoring')])
+
 
 	def validate_end_date(form, field):
 		if field.data < form.start_date.data:
@@ -1700,11 +1767,6 @@ def take_test():
 			cresults = cur1.fetchone()
 			imgdata2 = cresults['user_image']
 			cur1.close()
-			# nparr1 = np.frombuffer(base64.b64decode(imgdata1), np.uint8)
-			# nparr2 = np.frombuffer(base64.b64decode(imgdata2), np.uint8)
-			# image1 = cv2.imdecode(nparr1, cv2.COLOR_BGR2GRAY)
-			# image2 = cv2.imdecode(nparr2, cv2.COLOR_BGR2GRAY)
-			# img_result  = DeepFace.verify(image1, image2, enforce_detection = True)
 			if results1 > 0:
 				cur = mysql.connection.cursor()
 				results = cur.execute('SELECT * from teachers where test_id = %s', [test_id])
@@ -1739,10 +1801,11 @@ def take_test():
 											results = cur.fetchall()
 											for row in results:
 												print(row['qid'])
-												qiddb = ""+row['qid']
+												qiddb = "" + str(row['qid'])
 												print(qiddb)
 												marked_ans[qiddb] = row['ans']
-												marked_ans = json.dumps(marked_ans)
+											# Moved outside the loop to prevent string assignment crash
+											marked_ans = json.dumps(marked_ans)
 								else:
 									flash('Exam already given', 'success')
 									return redirect(url_for('take_test'))
@@ -1762,7 +1825,7 @@ def take_test():
 											if results > 0:
 												results = cur.fetchall()
 												for row in results:
-													marked_ans[row['qid']] = row['ans']
+													marked_ans[str(row['qid'])] = row['ans']
 												marked_ans = json.dumps(marked_ans)
 						else:
 							if datetime.strptime(start,"%Y-%m-%d %H:%M:%S") > now:
@@ -1789,6 +1852,11 @@ def test(testid):
 	cur.execute('SELECT test_type from teachers where test_id = %s ', [testid])
 	callresults = cur.fetchone()
 	cur.close()
+	
+	if not callresults:
+		flash('Invalid test ID', 'danger')
+		return redirect(url_for('take_test'))
+
 	if callresults['test_type'] == "objective":
 		global duration, marked_ans, calc, subject, topic, proctortype
 		if request.method == 'GET':
@@ -1799,20 +1867,49 @@ def test(testid):
 				return redirect(url_for('take_test'))
 		else:
 			cur = mysql.connection.cursor()
-			flag = request.form['flag']
+			flag = request.form.get('flag')
+			
 			if flag == 'get':
-				num = request.form['no']
-				results = cur.execute('SELECT test_id,qid,q,a,b,c,d,ans,marks from questions where test_id = %s and qid =%s',(testid, num))
-				print(results)
+				num = request.form.get('no')
+				if not num:
+					cur.close()
+					return json.dumps({})
+				
+				# Strip whitespace and query robustly as string/int to prevent 'undefined' issues
+				num_str = str(num).strip()
+				results = cur.execute(
+					'SELECT test_id, qid, q, a, b, c, d, ans, marks FROM questions WHERE test_id = %s AND TRIM(qid) = %s', 
+					(testid, num_str)
+				)
 				if results > 0:
 					data = cur.fetchone()
-					del data['ans']
+					if 'ans' in data:
+						del data['ans']
 					cur.close()
 					return json.dumps(data)
-			elif flag=='mark':
-				qid = request.form['qid']
-				ans = request.form['ans']
-				cur = mysql.connection.cursor()
+				
+				# Fallback check if qid is stored as a standard integer/type in DB
+				results = cur.execute(
+					'SELECT test_id, qid, q, a, b, c, d, ans, marks FROM questions WHERE test_id = %s AND qid = %s', 
+					(testid, int(num_str) if num_str.isdigit() else num_str)
+				)
+				if results > 0:
+					data = cur.fetchone()
+					if 'ans' in data:
+						del data['ans']
+					cur.close()
+					return json.dumps(data)
+
+				cur.close()
+				print(f"DEBUG: Question not found for test_id={testid}, qid={num_str}")
+				return json.dumps({})
+				
+			elif flag == 'mark':
+				qid = request.form.get('qid')
+				ans = request.form.get('ans')
+				if not qid:
+					cur.close()
+					return json.dumps({'status': 'error', 'msg': 'Missing qid'})
 				results = cur.execute('SELECT * from students where test_id =%s and qid = %s and email = %s', (testid, qid, session['email']))
 				if results > 0:
 					cur.execute('UPDATE students set ans = %s where test_id = %s and qid = %s and email = %s', (ans,testid, qid, session['email']))
@@ -1822,18 +1919,23 @@ def test(testid):
 					cur.execute('INSERT INTO students(email,test_id,qid,ans,uid) values(%s,%s,%s,%s,%s)', (session['email'], testid, qid, ans, session['uid']))
 					mysql.connection.commit()
 					cur.close()
-			elif flag=='time':
-				cur = mysql.connection.cursor()
-				time_left = request.form['time']
+				return json.dumps({'status': 'marked'})
+				
+			elif flag == 'time':
+				time_left = request.form.get('time')
+				if not time_left:
+					cur.close()
+					return json.dumps({'time': 'error', 'msg': 'Missing time'})
 				try:
 					cur.execute('UPDATE studentTestInfo set time_left=SEC_TO_TIME(%s) where test_id = %s and email = %s and uid = %s and completed=0', (time_left, testid, session['email'], session['uid']))
 					mysql.connection.commit()
 					cur.close()
 					return json.dumps({'time':'fired'})
-				except:
-					pass
+				except Exception as e:
+					cur.close()
+					return json.dumps({'time':'error', 'msg': str(e)})
+					
 			else:
-				cur = mysql.connection.cursor()
 				cur.execute('UPDATE studentTestInfo set completed=1,time_left=sec_to_time(0) where test_id = %s and email = %s and uid = %s', (testid, session['email'],session['uid']))
 				mysql.connection.commit()
 				cur.close()
@@ -1868,34 +1970,37 @@ def test(testid):
 				cur.close()
 				return render_template("testsubjective.html", callresults = callresults1, subject = subject, duration = duration, test_id = test_id, topic = topic )
 		elif request.method == 'POST':
-			cur = mysql.connection.cursor()
-			test_id = request.form["test_id"]
+			test_id = request.form.get("test_id")
+			if not test_id:
+				flash('Test ID missing from form submission', 'error')
+				return redirect(url_for('student_index'))
+				
 			cur = mysql.connection.cursor()
 			results1 = cur.execute('SELECT COUNT(qid) from longqa where test_id = %s',[testid])
 			results1 = cur.fetchone()
 			cur.close()
+			
 			insertStudentData = None
-			for sa in range(1,results1['COUNT(qid)']+1):
-				answerByStudent = request.form[str(sa)]
+			for sa in range(1, results1['COUNT(qid)'] + 1):
+				answerByStudent = request.form.get(str(sa), '')
 				cur = mysql.connection.cursor()
 				insertStudentData = cur.execute('INSERT INTO longtest(email,test_id,qid,ans,uid, marks) values(%s,%s,%s,%s,%s,%s)', (session['email'], testid, sa, answerByStudent, session['uid'], 0))
 				mysql.connection.commit()
-			else:
-				if insertStudentData > 0:
-					insertStudentTestInfoData = cur.execute('UPDATE studentTestInfo set completed = 1 where test_id = %s and email = %s and uid = %s', (test_id, session['email'], session['uid']))
-					mysql.connection.commit()
-					cur.close()
-					if insertStudentTestInfoData > 0:
-						flash('Successfully Exam Submitted', 'success')
-						return redirect(url_for('student_index'))
-					else:
-						cur.close()
-						flash('Some Error was occured!', 'error')
-						return redirect(url_for('student_index'))	
-				else:
-					cur.close()
-					flash('Some Error was occured!', 'error')
+			
+			if insertStudentData is not None and insertStudentData > 0:
+				cur = mysql.connection.cursor()
+				insertStudentTestInfoData = cur.execute('UPDATE studentTestInfo set completed = 1 where test_id = %s and email = %s and uid = %s', (test_id, session['email'], session['uid']))
+				mysql.connection.commit()
+				cur.close()
+				if insertStudentTestInfoData > 0:
+					flash('Successfully Exam Submitted', 'success')
 					return redirect(url_for('student_index'))
+				else:
+					flash('Some Error was occured!', 'error')
+					return redirect(url_for('student_index'))	
+			else:
+				flash('Some Error was occured!', 'error')
+				return redirect(url_for('student_index'))
 
 	elif callresults['test_type'] == "practical":
 		if request.method == 'GET':
@@ -1925,10 +2030,15 @@ def test(testid):
 				cur.close()
 				return render_template("testpractical.html", callresults = callresults1, subject = subject, duration = duration, test_id = test_id, topic = topic )
 		elif request.method == 'POST':
-			test_id = request.form["test_id"]
-			codeByStudent = request.form["codeByStudent"]
-			inputByStudent = request.form["inputByStudent"]
-			executedByStudent = request.form["executedByStudent"]
+			test_id = request.form.get("test_id")
+			codeByStudent = request.form.get("codeByStudent", "")
+			inputByStudent = request.form.get("inputByStudent", "")
+			executedByStudent = request.form.get("executedByStudent", "")
+			
+			if not test_id:
+				flash('Test ID missing from form submission', 'error')
+				return redirect(url_for('student_index'))
+				
 			cur = mysql.connection.cursor()
 			insertStudentData = cur.execute('INSERT INTO practicaltest(email,test_id,qid,code,input,executed,uid) values(%s,%s,%s,%s,%s,%s,%s)', (session['email'], testid, "1", codeByStudent, inputByStudent, executedByStudent, session['uid']))
 			mysql.connection.commit()
@@ -1947,6 +2057,8 @@ def test(testid):
 				cur.close()
 				flash('Some Error was occured!', 'error')
 				return redirect(url_for('student_index'))
+				
+	return redirect(url_for('student_index'))
 
 @app.route('/randomize', methods = ['POST'])
 def random_gen():

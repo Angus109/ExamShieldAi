@@ -87,7 +87,7 @@ window.onfocus = function(event) {
     }
   }
   
-  function captureSnapshot() {
+ function captureSnapshot() {
   
     if( null != cameraStream ) {
       var ctx = capture.getContext( '2d' );
@@ -100,11 +100,10 @@ window.onfocus = function(event) {
 
         var average = values / length;
 
-        console.log(average)
-        console.log(Math.round(average - 40));
+        console.log(average);
 
-        if(average)
-        {
+        // Fixed: Allow average to send even if it is 0 (silence), as long as it's a valid number
+        if (!isNaN(average)) {
             $.post("/video_feed",{
                 data : {'imgData':res,'voice_db':average,'testid': tid}},
                 function(data){
@@ -139,6 +138,16 @@ $(document).ready( function() {
     sendTime();
     flag_time = true;
 
+    // --- ADD THIS BLOCK TO TRIGGER AUTOMATIC PROCTORING ---
+    if (typeof proctoringType !== 'undefined' && proctoringType === "0") {
+        var videocheckEl = document.getElementById('videocheck');
+        if (videocheckEl) {
+            videocheckEl.style.display = "block";
+        }
+        startStreaming();
+        captureSnapshot();
+    }
+    // -----------------------------------------------------
 })
 
 var unmark_all = function() {
@@ -156,10 +165,10 @@ var display_ques = function(move) {
         data : {flag: 'get', no: nos[curr]},
         success: function(temp) {
             $('#que').text(temp['q']);
-            $('#a').text('𝐀.  '+temp['a']);
-            $('#b').text('𝐁.  '+temp['b']);
-            $('#c').text('𝐂.  '+temp['c']);
-            $('#d').text('𝐃.  '+temp['d']);
+            $('#a').text('A.  '+temp['a']);
+            $('#b').text('B.  '+temp['b']);
+            $('#c').text('C.  '+temp['c']);
+            $('#d').text('D.  '+temp['d']);
             $('#queid').text('Question No. '+ (move));
             $('#mark').text('Marks: '+temp['marks']);
             if(data[curr+1].marked != null)

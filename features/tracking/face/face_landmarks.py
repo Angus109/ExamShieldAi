@@ -36,16 +36,10 @@ def _predictor_path() -> str:
     Return the filesystem path to shape_predictor_68_face_landmarks.dat.
 
     Checks (in order):
-      1. face_recognition_models package  (installed with face_recognition)
-      2. model_defination/ directory
+      1. model_defination/ directory
+      2. face_recognition_models package
       3. working directory
     """
-    try:
-        import face_recognition_models
-        return face_recognition_models.pose_predictor_68_point_model_location()
-    except ImportError:
-        pass
-
     candidates = [
         Path("model_defination/shape_predictor_68_face_landmarks.dat"),
         Path("shape_predictor_68_face_landmarks.dat"),
@@ -54,10 +48,22 @@ def _predictor_path() -> str:
         if p.exists():
             return str(p)
 
+    try:
+        import face_recognition_models
+        import os
+        dat_path = os.path.join(
+            os.path.dirname(face_recognition_models.__file__),
+            "models",
+            "shape_predictor_68_face_landmarks.dat"
+        )
+        if os.path.exists(dat_path):
+            return dat_path
+    except ImportError:
+        pass
+
     raise FileNotFoundError(
         "shape_predictor_68_face_landmarks.dat not found.\n"
-        "Install face_recognition:  pip install face_recognition\n"
-        "or place the .dat file in model_defination/"
+        "Place the shape_predictor_68_face_landmarks.dat file in model_defination/"
     )
 
 

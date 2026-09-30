@@ -264,6 +264,10 @@ def _head_pose(marks: np.ndarray, frame_shape: tuple) -> tuple[float, float]:
 # Public API  — identical contract to the original camera.py
 # ─────────────────────────────────────────────────────────────────────────────
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Public API  — identical contract to the original camera.py
+# ─────────────────────────────────────────────────────────────────────────────
+
 def get_frame(img_data: str) -> dict:
     """
     Process one Base64-encoded JPEG webcam frame from the proctoring client.
@@ -283,6 +287,7 @@ def get_frame(img_data: str) -> dict:
         user_movements_lr       int   0 = forward,    1 = left/right deviation
         user_movements_eyes     int   0 = eyes open,  1 = blinking / not seen
         img_log                 str   Base64 JPEG of the (annotated) frame
+        jpg_as_text             str   Base64 JPEG of the (annotated) frame (matches app.py)
     """
     result: dict = {
         "person_status":         0,
@@ -291,6 +296,7 @@ def get_frame(img_data: str) -> dict:
         "user_movements_lr":     0,
         "user_movements_eyes":   0,
         "img_log":               img_data,
+        "jpg_as_text":           img_data,  # Added to prevent KeyError in app.py
     }
 
     # ── 1. Decode frame ───────────────────────────────────────────────────────
@@ -346,7 +352,9 @@ def get_frame(img_data: str) -> dict:
     try:
         _, buf     = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 70])
         b64        = base64.b64encode(buf).decode("utf-8")
-        result["img_log"] = "data:image/jpeg;base64," + b64
+        encoded_img = "data:image/jpeg;base64," + b64
+        result["img_log"]     = encoded_img
+        result["jpg_as_text"] = encoded_img  # Populate both expected keys
     except Exception as exc:
         log.warning("get_frame: encode failed — %s", exc)
 
